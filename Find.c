@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <math.h>
 #include <ctype.h>
+#include "sorter.h"
 int 
 getDirSize (const char *directory) 
 {
@@ -61,7 +62,7 @@ char * newDir = appendNull(directory);
 
  
 char *temp;
-temp = strtok (newDir, "/");
+temp = strtok (newDir, "/\\");
  char * buffer;
  
 int counter = 1;
@@ -77,7 +78,6 @@ strcpy(*dir,temp);
 dir++;
 counter++;
     
- 
 }
 }
 
