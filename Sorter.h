@@ -1,46 +1,91 @@
+/*****
+*
+*	Define structures and function prototypes for your sorter
+*
+*
+*
+******/
 
-#ifndef Sorter_H
-#define	Sorter_H
-#include <time.h>
-typedef enum _boolean bool;
+//Suggestion: define a struct that mirrors a record (row) of the data set
+struct mData{
+	char color[20];
+	char dName[30];
+	int review;
+	int duration;
+	int dFbLikes; // director facebook likes
+	int a3FbLikes; // actor 3 facebook likes
+	char a2Name[30];
+	int a1FbLikes; // actor 1 facebook likes
+	int gross;
+	char genres[50];
+	char a1Name[30]; // actor 1 name
+	char mTitle[90]; // movie title
+	int votes;
+	int castFbLikes;
+	char a3Name[30];
+	int facenum; // facenumber in poster
+	char plot[80]; //plot key words
+	char movielink[80];
+	int userReview; //num of user reviews
+	char language[15];
+	char country[20];
+	char cRating[8]; // content rating
+	int budget;
+	int tYear;
+	int a2FbLikes; // actor 2 facebook likes
+	float imdbScore;
+	float aRatio; // aspect ratio
+	int movieFbLikes; // movie facebook likes
+	/*color,director_name,num_critic_for_reviews,duration,director_facebook_likes,actor_3_facebook_likes,actor_2_name,
+	actor_1_facebook_likes,gross,genres,actor_1_name,movie_title,num_voted_users,cast_total_facebook_likes,actor_3_name,
+	facenumber_in_poster,plot_keywords,movie_imdb_link,num_user_for_reviews,language,
+	country,content_rating,budget,title_year,actor_2_facebook_likes,imdb_score,aspect_ratio,movie_facebook_likes
+	*/
+};
 
-typedef struct _data
+//Suggestion: prototype a mergesort function
+
+void MergeSort(struct mData arr[],void** pray,int sF,char* field,int low,int high);
+void Merge(struct mData arr[],void** pray,int sF,char* field,int low,int mid,int high, int size);
+void Print(FILE *wf,struct mData arr[],int size);
+int changePos(struct mData **records,int left,int right);
+void Print2(struct mData records[],int ctotal);
+char *strip(char * input);
+
+
+
+char *strip(char * input) {
+
+	char *end = input + strlen(input);
+
+	while (end > input && *end != '.') {
+		--end;
+	}
+
+	if (end > input) {
+		*end = '\0';
+	}
+	//printf("output input (in fun)file name: %s\n",input);
+	//printf("output end (in fun)file name: %s\n",end);
+
+	return input;
+}
+
+
+/*
+int compareStrings(void *p1, void *p2)
+ {
+	char *s1 = p1;
+	char *s2 = p2;
+
+	return strcmp(s1, s2);
+}
+
+int compareInts(void *a, void *b)
 {
-	char* color; //Color
-	char* dirName; //Director Name
-	char* critCount; //Critic counts i
-	char* durMin; //Duration in minutes  *****we could just use an char* val? -M i
-	char* dirFB; //Director Facebook likes i
-	char* act3FB; //Actor 3 facebook likes i
-	char* act2Name; //Actor 2's Name
-	char* act1FB; //Actor 1 Facebook likes
-	char* gross; // Gross (could be long char*)
-	char* genre; // genere char* of char*
-	char* act1Name; // Actor name
-	char* title; // Title
-	char* numVoted; // number user voted
-	char* totalFB; // Total Facebook likes
-	char* act3Name; // Actor 3's Name
-	char* faceNum; // Face number in poster
-	char* keyWord; // keywords
-	char* link; // link to website
-	char* numReview; // number of user reviews
-	char* lang; // language
-	char* country; // country i i
-	char* rated; // rating
-	char* budget; // budget
-	char* year; // year created
-	char* act2FB; // Actor 2's Facebook like
-	char* score; // movie score out of 10
-	char* ratio; // aspect ratio
-	char* movieFB; // Movie facebook likes
- char* size;// size of data struct
-}data;
+	int i = *(int*)a;
+	int j = *(int*)b;
 
-
-//void resize(String * ori); // resizes array if the original aribitrary size is too small
-void mergeData(data* A,int left , int middle , int right, int comp_ptr) ; // Merges the two arrays together returns a combined array
-void split(data* array, int left, int right,int comp_ptr);// splits the original array returning one array that is split upper half and only keeping the lower half of the array
-bool compareString(char* A, char* B);
-void toString(data* ori,int size);
-#endif
+	return i - j;
+}
+*/
