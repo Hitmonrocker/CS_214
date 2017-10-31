@@ -179,10 +179,7 @@ while(iR < size2)
 	iR++;
 	iM++;
 }
-free(first);
-free(second);
-first = NULL;
-second = NULL;
+
 
 }
 
