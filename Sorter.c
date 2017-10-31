@@ -139,8 +139,24 @@ while(iL < size1 && iR < size2)
 	}
 	else
 	{
-		if((counter + 1) < comp_ptr_size)
+		while((counter + 1) < comp_ptr_size)
+		{
+			int comp = compare(first[iL],second[iR],comp_ptr[counter]);
+			if(comp < 0)
+			{
+			array[iM] = first[iL];
+			iL++;
+			}
+			 else if (comp > 0)
+			{
+			array[iM] = second[iR];
+			iR++;
+			}
+			else
+				{
+				}
 		counter++;
+		}
 		else
 		{
 			array[iM] = first[iL];
