@@ -4,153 +4,106 @@
 #include <math.h>
 #include <string.h>
 #include "Sorter.h"
-enum _boolean {false, true};
-
-bool compareString(char* A,char* B)
-{
-	int size1 = sizeof(A);
-	int size2 =	sizeof(B);
-	int counter=0;
-	bool final=true;
-	if(A == NULL )
-	{
-		return false;
-	}
-	if (B == NULL)
-	{
-		return true;
-	}
-	while(counter<size1 && counter<size2)
-	{
-		if((int)A[counter]==(int)B[counter])
-		{
-			counter++;
-		}
-		else if((int)A[counter]<(int)B[counter])
-		{
-			return true;
-		}
-		else
-		{
-		return false;
-		}
-	}
-	return true;
-}
-bool compare(data leftArr, data rightArr, int comp_ptr)
+int compare(data leftArr, data rightArr, int comp_ptr)
 {
 
 	switch(comp_ptr)
 	{
 		case 0:
-			return compareString(leftArr.color,rightArr.color);
+			return strcmp(leftArr.color,rightArr.color);
 		break;
 		case 1:
-		{
-			return compareString(leftArr.dirName,rightArr.dirName);
-		}
+			return strcmp(leftArr.dirName,rightArr.dirName);
 		break;
 		case 2:
-			return compareString(leftArr.critCount,rightArr.critCount);
+			return strcmp(leftArr.critCount,rightArr.critCount);
 		break;
 		case 3:
-			return atoi(leftArr.durMin) <= atoi(rightArr.durMin);
+			return (leftArr.durMin) - (rightArr.durMin);
 		break;
 		case 4:
-			return compareString(leftArr.dirFB,rightArr.dirFB);
+			return strcmp(leftArr.dirFB,rightArr.dirFB);
 		break;
 		case 5:
-			return atoi(leftArr.act3FB) <= atoi(rightArr.act3FB);
+			return  (leftArr.act3FB) - (rightArr.act3FB);
 		break;
 		case 6:
-			return compareString(leftArr.act2Name,rightArr.act2Name);
+			return strcmp(leftArr.act2Name,rightArr.act2Name);
 		break;
 		case 7:
-			return atoi(leftArr.act1FB) <= atoi(rightArr.act1FB);
+			return  (leftArr.act1FB) - (rightArr.act1FB);
 		break;
 		case 8:
-			return atoi(leftArr.gross) <= atoi(rightArr.gross);
+			return  (leftArr.gross) - (rightArr.gross);
 		break;
 		case 9:
-			return compareString(leftArr.genre,rightArr.genre);
+			return strcmp(leftArr.genre,rightArr.genre);
 		break;
 		case 10:
-			return compareString(leftArr.act1Name,rightArr.act1Name);
+			return strcmp(leftArr.act1Name,rightArr.act1Name);
 		break;
 		case 11:
-			return compareString(leftArr.title,rightArr.title);
+			return strcmp(leftArr.title,rightArr.title);
 		break;
 		case 12:
-			return atoi(leftArr.numVoted) <= atoi(rightArr.numVoted);
+			return  (leftArr.numVoted) -  (rightArr.numVoted);
 		break;
 		case 13:
-			return atoi(leftArr.totalFB) <= atoi(rightArr.totalFB);
+			return  (leftArr.totalFB) -  (rightArr.totalFB);
 		break;
 		case 14:
-			return compareString(leftArr.act3Name,rightArr.act3Name);
+			return strcmp(leftArr.act3Name,rightArr.act3Name);
 		break;
 		case 15:
-			return atoi(leftArr.faceNum) <= atoi(rightArr.faceNum);
+			return  (leftArr.faceNum) -  (rightArr.faceNum);
 		break;
 		case 16:
-			return compareString(leftArr.keyWord,rightArr.keyWord);
+			return strcmp(leftArr.keyWord,rightArr.keyWord);
 		break;
 		case 17:
-			return compareString(leftArr.link,rightArr.link);
+			return strcmp(leftArr.link,rightArr.link);
 		break;
 		case 18:
-			return atoi(leftArr.numReview) <= atoi(rightArr.numReview);
+			return  (leftArr.numReview) -  (rightArr.numReview);
 		break;
 		case 19:
-			return compareString(leftArr.lang,rightArr.lang);
+			return strcmp(leftArr.lang,rightArr.lang);
 		break;
 		case 20:
-			return compareString(leftArr.country,rightArr.country);
+			return strcmp(leftArr.country,rightArr.country);
 		break;
 		case 21:
-			return compareString(leftArr.rated,rightArr.rated);
+			return strcmp(leftArr.rated,rightArr.rated);
 		break;
 		case 22:
-			return atoi(leftArr.budget) <= atoi(rightArr.budget);
+			return  (leftArr.budget) - (rightArr.budget);
 		break;
 		case 23:
-			return atoi(leftArr.year) <= atoi(rightArr.year);
+			return  (leftArr.year) - (rightArr.year);
 		break;
 		case 24:
-			return atoi(leftArr.act2FB) <= atoi(rightArr.act2FB);
+			return  (leftArr.act2FB) -  (rightArr.act2FB);
 		break;
-		case 25:{
-			char * endToken;
-			char * endToken2;
-			double left = strtol(leftArr.score,&endToken,10);
-			double right = strtol(rightArr.score,&endToken,10);
-			return left <= right;
-		}
+		case 25:
+			return leftArr.score - rightArr.score;
 		break;
-		case 26:{
-				char * endToken;
-			char * endToken2;
-			double left = strtol(leftArr.ratio,&endToken,10);
-			double right = strtol(rightArr.ratio,&endToken,10);
-			return left <= right;
-		}
+		case 26:
+			return leftArr.ratio - rightArr.ratio;
 		break;
-		case 27:{
-			 int left = atoi(leftArr.movieFB);
-			 int right = atoi(rightArr.movieFB);
-			return left < right;
-		}
+		case 27:
+			 return leftArr.movieFB - rightArr.movieFB ;
 		break;
 		default:
-		return atoi(leftArr.critCount) < atoi(rightArr.critCount);
+		return  (leftArr.critCount) - (rightArr.critCount);
 		break;
 
 	}
 
 }
-void mergeData(data *array,int left , int middle , int right, int comp_ptr) // Merges the two arrays together returns a combined array
+void mergeData(data *array,int left , int middle , int right, int* comp_ptr,int comp_ptr_size) // Merges the two arrays together returns a combined array
 {
 	int size1,size2;
+	int counter = 0;
 	size1 = middle-left+1;
 	size2 = right-middle;
 
@@ -173,16 +126,27 @@ int iM = left;
 
 while(iL < size1 && iR < size2)
 {
-
-	if(compare(first[iL],second[iR],comp_ptr))
+	int comp = compare(first[iL],second[iR],comp_ptr[counter]);
+	if(comp < 0)
 	{
 		array[iM] = first[iL];
 		iL++;
 	}
-	 else
+	 else if (comp > 0)
 	{
 		array[iM] = second[iR];
 		iR++;
+	}
+	else
+	{
+		if((counter + 1) < comp_ptr_size)
+		counter++;
+		else
+		{
+			array[iM] = first[iL];
+			iL++;
+		}
+
 	}
 
 iM++;
@@ -206,16 +170,30 @@ second = NULL;
 
 }
 
-void split(data *array, int left, int right,int comp_ptr)
+void split(data *array, int left, int right,int* comp_ptr,int comp_ptr_size)
 {
 
 	if (left < right)
 	{
 
 		int middle=left+(right-left)/2;
-		split(array,left,middle,comp_ptr);
-		split(array,middle+1,right,comp_ptr);
-		mergeData(array,left,middle,right,comp_ptr);
+		split(array,left,middle,comp_ptr,comp_ptr_size);
+		split(array,middle+1,right,comp_ptr,comp_ptr_size);
+		mergeData(array,left,middle,right,comp_ptr,comp_ptr_size);
 	}
 
 }
+/*
+So here is what I changed I made strcmp the basic string comparison
+I changed all the compares to addition or subtraction this way it 
+returns the values <1,1, or >1 this way we can tell if something 
+is greater than, equal to, or less than the other. If the are equal we move to the
+next thing in comp_ptr i.e maybe we want to find movie_title and then director name
+we keep doing this for as long as things are equal or until we have no more comparison parameters
+to which we just treat equal case as less than. The only thing you need to send into split is the pointer and the 
+size of the array for comparison ptr. Let me know if you have any questions. 
+
+
+
+
+ */
