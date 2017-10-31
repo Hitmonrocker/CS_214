@@ -16,13 +16,13 @@ int compare(data leftArr, data rightArr, int comp_ptr)
 			return strcmp(leftArr.dirName,rightArr.dirName);
 		break;
 		case 2:
-			return strcmp(leftArr.critCount,rightArr.critCount);
+			return leftArr.critCount - rightArr.critCount;
 		break;
 		case 3:
 			return (leftArr.durMin) - (rightArr.durMin);
 		break;
 		case 4:
-			return strcmp(leftArr.dirFB,rightArr.dirFB);
+			return leftArr.dirFB - rightArr.dirFB;
 		break;
 		case 5:
 			return  (leftArr.act3FB) - (rightArr.act3FB);
@@ -85,16 +85,16 @@ int compare(data leftArr, data rightArr, int comp_ptr)
 			return  (leftArr.act2FB) -  (rightArr.act2FB);
 		break;
 		case 25:
-			return leftArr.score - rightArr.score;
+			return (int)(leftArr.score - rightArr.score);
 		break;
 		case 26:
-			return leftArr.ratio - rightArr.ratio;
+			return (int)(leftArr.ratio - rightArr.ratio);
 		break;
 		case 27:
 			 return leftArr.movieFB - rightArr.movieFB ;
 		break;
 		default:
-		return  (leftArr.critCount) - (rightArr.critCount);
+			return  (leftArr.critCount) - (rightArr.critCount);
 		break;
 
 	}
@@ -102,7 +102,7 @@ int compare(data leftArr, data rightArr, int comp_ptr)
 }
 void mergeData(data *array,int left , int middle , int right, int* comp_ptr,int comp_ptr_size) // Merges the two arrays together returns a combined array
 {
-	int size1,size2;
+	int k,size1,size2;
 	int counter = 0;
 	size1 = middle-left+1;
 	size2 = right-middle;
@@ -125,8 +125,9 @@ int iR = 0;
 int iM = left;
 
 while(iL < size1 && iR < size2)
-{
+{	counter = 0;
 	int comp = compare(first[iL],second[iR],comp_ptr[counter]);
+	printf("%d\n",comp_ptr[counter]);
 	if(comp < 0)
 	{
 		array[iM] = first[iL];
@@ -138,33 +139,35 @@ while(iL < size1 && iR < size2)
 		iR++;
 	}
 	else
-	{
-		while((counter + 1) < comp_ptr_size)
+	{	int in = 0;
+
+		while((counter+1)  < comp_ptr_size && in ==0)
 		{
-			int comp = compare(first[iL],second[iR],comp_ptr[counter]);
+			counter++;
+				int comp = compare(first[iL],second[iR],comp_ptr[counter]);
 			if(comp < 0)
+				{
+					array[iM] = first[iL];
+					iL++;
+					in = 1;
+				}
+	 		else if (comp > 0)
 			{
-			array[iM] = first[iL];
-			iL++;
-			}
-			 else if (comp > 0)
-			{
-			array[iM] = second[iR];
-			iR++;
+				array[iM] = second[iR];
+				iR++;
+				in = 1;
 			}
 			else
-				{
-				}
-		counter++;
+			{
+			}
 		}
-		else
+
+		if(in == 0)
 		{
-			array[iM] = first[iL];
-			iL++;
+		array[iM] = first[iL];
+		iL++;
 		}
-
 	}
-
 iM++;
 }
 while(iL < size1)
@@ -179,7 +182,10 @@ while(iR < size2)
 	iR++;
 	iM++;
 }
-
+free(first);
+free(second);
+first = NULL;
+second = NULL;
 
 }
 
@@ -195,18 +201,5 @@ void split(data *array, int left, int right,int* comp_ptr,int comp_ptr_size)
 		mergeData(array,left,middle,right,comp_ptr,comp_ptr_size);
 	}
 
+
 }
-/*
-So here is what I changed I made strcmp the basic string comparison
-I changed all the compares to addition or subtraction this way it 
-returns the values <1,1, or >1 this way we can tell if something 
-is greater than, equal to, or less than the other. If the are equal we move to the
-next thing in comp_ptr i.e maybe we want to find movie_title and then director name
-we keep doing this for as long as things are equal or until we have no more comparison parameters
-to which we just treat equal case as less than. The only thing you need to send into split is the pointer and the 
-size of the array for comparison ptr. Let me know if you have any questions. 
-
-
-
-
- */
