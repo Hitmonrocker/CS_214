@@ -1,0 +1,7 @@
+//------- Testing Variables ------\\
+1 - Number of Inital Threads
+2 - Recursivley checking directory initally for thread count
+ 	Recursively to get names and valid csv files (Put them into a data struct (Link list for the easy of adding without realloc)) O(|dir| + |file|) BFS 
+		Then create threads run a thread for each file and do the appropriate ops O(|linkList|) 
+			Mergesort O(n log n)
+3 - Preallocate a large number of threads to hope for no reallocation
