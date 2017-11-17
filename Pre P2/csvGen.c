@@ -181,7 +181,7 @@ end = clock() - start;
 times = ((double)end)/CLOCKS_PER_SEC;
 char * args[] = {"-c","-c","colors","-d",argv[1],"-o","Test"};
 start = clock();
-mainProject(6,args);
+//mainProject(6,args);
 end = clock() - start;
 times = ((double)end)/CLOCKS_PER_SEC;
 printf("This took %f seconds to execute\n",times);
