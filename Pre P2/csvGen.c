@@ -8,6 +8,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <errno.h>
+#include "arg.c"
 
 char* createChar(int charCount)
 {
@@ -39,7 +40,7 @@ void createCSV(char* dirName, int numberOfRows)
 	strcat(filename,createChar(4));
 	strcat(filename,".csv");
 	FILE *fp;
-	fp = fopen(filename,"wb+");
+	fp = fopen(filename,"wb");
 	for (int i = 0; i < numberOfRows; ++i)
 		{
 				fprintf(fp, "%s,",createChar(17));
@@ -82,7 +83,10 @@ void createCSV(char* dirName, int numberOfRows)
 }
 char * createDir(char* dirName, int avgNumofDir)
 {
-	 DIR *dir;
+
+if(strlen(dirName)<=26)
+{
+	DIR *dir;
     struct dirent *dent;
     char* Newdir = dirName;
 	dir = opendir(dirName);
@@ -135,13 +139,15 @@ char * createDir(char* dirName, int avgNumofDir)
 close(dir);
 return Newdir;
 }
+return dirName;
+}
 
 
 int main(int argc, char const *argv[])
 {
 	clock_t start, end;
 	double times;
-	start = clock();
+
 	srand(time(NULL));
 
 int* counter = 0;
@@ -171,6 +177,11 @@ for (int i = 0; i < atoi(argv[2])/10; ++i)
 				exit(01);
 				}
 }
+end = clock() - start;
+times = ((double)end)/CLOCKS_PER_SEC;
+char * args[] = {"-c","-c","colors","-d",argv[1],"-o","Test"};
+start = clock();
+mainProject(6,args);
 end = clock() - start;
 times = ((double)end)/CLOCKS_PER_SEC;
 printf("This took %f seconds to execute\n",times);
