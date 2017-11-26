@@ -1,3 +1,5 @@
+#include <pthread.h>
+
 struct file_dir{
 	char *wDir;
 	char *oDir;
@@ -6,7 +8,14 @@ struct file_dir{
 	int compare_size;
 	int *compareArr;
 };
+struct wdir{
+	char wDir[100];
+};
 
+struct Counter {
+        int count;
+        pthread_mutex_t lock;
+};
 
 
 void print_usage();
