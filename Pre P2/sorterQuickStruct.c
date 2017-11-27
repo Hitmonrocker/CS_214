@@ -167,13 +167,13 @@ void quickSort(struct mData *array,int start, int end,int comp_ptr)
 		quickSort(array,mid+1,end,comp_ptr);
 	}
 }
-void quickSort2(int *array,int start, int end, int k)
+void quickSort2(int *array,int start, int end, int k, int comp_ptr)
 {
 	if(end-start > k)
 	{
-		int mid = randPartition(array,start,end);
-		quickSort2(array,start,mid-1,k);
-		quickSort2(array,mid+1,end,k);
+		int mid = randPartition(array,start,end,comp_ptr);
+		quickSort2(array,start,mid-1,k,comp_ptr);
+		quickSort2(array,mid+1,end,k,comp_ptr);
 	}
 }
 
