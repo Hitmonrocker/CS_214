@@ -119,18 +119,20 @@ void swap(struct mData* a, struct mData* b)
 	*a = *b;
 	*b = temp;
 }
-void insertionSort(struct mData* array,int size,int comp_ptr)
+void bubbleSort(struct mData *array,int size, int comp_ptr)
 {
-	int i,key,j;
-	for (int i = 1; i <size ;i++)
+	int i=0;
+	while(i==0)
 	{
-		j=i-1;
-		while(j >= 0 && compare(array[j],array[i],comp_ptr) > 0)
+		i = 1;
+		for (int j=1; j < size-1; j++)
 		{
-			array[j+1] = array[j];
-			j = j-1;
+			if(compare(array[j-1],array[j],comp_ptr) > 0)
+			{
+				swap(&array[j-1],&array[j]);
+				i = 0;
+			}
 		}
-		array[j+1] = array[i];
 	}
 }
 
@@ -165,63 +167,16 @@ void quickSort(struct mData *array,int start, int end,int comp_ptr)
 		quickSort(array,mid+1,end,comp_ptr);
 	}
 }
-void *quickSort2(void *iS)
-{	
-	struct arraySort *inputStruct = (struct arraySort *)iS;
-	int start = inputStruct -> start;
-	int end = inputStruct -> end;
-	struct mData* array = inputStruct -> array;
-	int comp_ptr = inputStruct -> comp_ptr;
-	if(start < end)
-	{
-		int mid = randPartition(array,start,end,comp_ptr);
-		quickSort(array,start,mid-1,comp_ptr);
-		quickSort(array,mid+1,end,comp_ptr);
-	}
-}
-void quickSortThreaded(struct mData* array,int start,int end,int ptr)
+void quickSort2(int *array,int start, int end, int k)
 {
-	pthread_t tid;
-	int numOfThreads = ((end+1)/Max_Thread_Size) + 1; 
-	int tc;
-	int tempStart = start;
-	int tempEnd = start + Max_Thread_Size-1;
-	if(tempEnd >end)
-		tempEnd = end;
-	printf("%d\n",numOfThreads );
-	struct arraySort a;
-	a.array = array;
-	a.start = tempStart;
-	a.end = tempEnd;
-	a.comp_ptr = ptr;
-	pthread_t *threads = malloc(sizeof(pthread_t) * (numOfThreads));
-	for (int i = 0; i < numOfThreads; ++i)
+	if(end-start > k)
 	{
-		printf("%d : %d : %d\n",tempStart,tempEnd,i);
-		tc = pthread_create(&threads[i],NULL,quickSort2,(void*)&a);
-			if (tc) {
-				printf("ERROR; return code from pthread_create() is %d\n", tc);
-				exit(-1);
-			}
-		tempStart = tempEnd+1;
-		if(tempStart>end)
-			tempStart = end;
-		tempEnd = tempStart+Max_Thread_Size-1;
-		if(tempEnd  >end)
-			tempEnd = end;
-		a.start = tempStart;
-		a.end = tempEnd;
-		
-		
+		int mid = randPartition(array,start,end);
+		quickSort2(array,start,mid-1,k);
+		quickSort2(array,mid+1,end,k);
 	}
-	while ((numOfThreads - 1) >= 0) {
-		numOfThreads--;
-		pthread_join(threads[numOfThreads], NULL);
-		//printf("Return value %ld\n", (long)ans);
-	}
-	insertionSort(array,end+1,ptr);
-
 }
+
 int main(int argc, char const *argv[])
 {
 		return 0;
