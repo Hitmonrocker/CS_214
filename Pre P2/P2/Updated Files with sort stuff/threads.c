@@ -43,6 +43,18 @@ void print_final(struct mData *records, struct file_dir dir) {
 	FILE *wf;
 	//start here by creating the final file to print all this
 	//line_number is the total number of entries;
+
+	//print_stat(&dir);
+	char *outFile = (char *) malloc(sizeof(char) * 300);
+	strcpy(outFile, dir.oDir);
+	strcat(outFile, "/");
+	strcat(outFile, "-sorted");
+	strcat(outFile, "-");
+	strcat(outFile, dir.sF);
+	strcat(outFile, ".csv");
+	wf = fopen(outFile, "w+");
+	//printf("ptr in: %c\n", first_ptr[0]);
+
 	fprintf(wf,
 			"color,director_name,num_critic_for_reviews,duration,director_facebook_likes,actor_3_facebook_likes,"
 					"actor_2_name,actor_1_facebook_likes,gross,genres,actor_1_name,movie_title,num_voted_users,cast_total_facebook_likes,"
@@ -54,17 +66,17 @@ void print_final(struct mData *records, struct file_dir dir) {
 		//printf(" Movie %s. \n",  records[i].mTitle);
 
 		fprintf(wf,
-						"%s,%s,%d,%d,%d,%d,%s,%d,%d,%s,%s,%s,%d,%d,%s,%d,%s,%s,%d,%s,%s,%s,%d,%d,%d,%g,%g,%d\n",
-						records[i].color, records[i].dName, records[i].review,
-						records[i].duration, records[i].dFbLikes, records[i].a3FbLikes,
-						records[i].a2Name, records[i].a1FbLikes, records[i].gross,
-						records[i].genres, records[i].a1Name, records[i].mTitle,
-						records[i].votes, records[i].castFbLikes, records[i].a3Name,
-						records[i].facenum, records[i].plot, records[i].movielink,
-						records[i].userReview, records[i].language, records[i].country,
-						records[i].cRating, records[i].budget, records[i].tYear,
-						records[i].a2FbLikes, records[i].imdbScore, records[i].aRatio,
-						records[i].movieFbLikes);
+				"%s,%s,%d,%d,%d,%d,%s,%d,%d,%s,%s,%s,%d,%d,%s,%d,%s,%s,%d,%s,%s,%s,%d,%d,%d,%g,%g,%d\n",
+				records[i].color, records[i].dName, records[i].review,
+				records[i].duration, records[i].dFbLikes, records[i].a3FbLikes,
+				records[i].a2Name, records[i].a1FbLikes, records[i].gross,
+				records[i].genres, records[i].a1Name, records[i].mTitle,
+				records[i].votes, records[i].castFbLikes, records[i].a3Name,
+				records[i].facenum, records[i].plot, records[i].movielink,
+				records[i].userReview, records[i].language, records[i].country,
+				records[i].cRating, records[i].budget, records[i].tYear,
+				records[i].a2FbLikes, records[i].imdbScore, records[i].aRatio,
+				records[i].movieFbLikes);
 		//printf("\n");
 
 	}
@@ -171,7 +183,7 @@ void *parse_dir(void *st) {
 			fflush(stdout);
 			//printf("Dir: Thread ID = %ld\n", self_id);
 			//printf("[%s], %ld\n", dir_entry->d_name, self_id);
-			printf("%ld,", self_id);
+			//printf("%ld,", self_id);
 			//save new struct info
 			str1[i] = *str;
 			//print_stat(&str1);
@@ -201,18 +213,23 @@ void *parse_dir(void *st) {
 					self_id = pthread_self();
 					fflush(stdout);
 					//printf("(%s), %ld\n", dir_entry->d_name, self_id);
-					printf("%ld,", self_id);
+					//printf("%ld,", self_id);
 					strcpy(wDir[i].wDir, str->wDir);
 					strcat(wDir[i].wDir, "/");
 					strcat(wDir[i].wDir, dir_entry->d_name);
 					//printf("WDIR IS = %s\n",wDir[i].wDir);
 
-					struct Sorter *sort = malloc(1 * sizeof *sort);
+					struct Sorter *sort = malloc(sizeof *sort);
+					if(sort ==NULL){
+						printf("Error allocating memory!\n");
+					}
 					sort->comp_ptr = str->compare;
 					sort->lock = &slock;
 					sort->wDir = wDir[i].wDir;
-					sort->wDir = str->oDir;
+					sort->oDir = str->oDir;
 					sort->final = str->final;
+					//printf("The wDir name is %s\n", sort->wDir);
+					//printf("The oDir T name is %s\n", sort->oDir);
 
 					//printf("WDIR IS = %s\n",wDir);
 					tc = pthread_create(&threads[i], NULL, file_sort, &sort);
@@ -320,7 +337,7 @@ int main(int argc, char* argv[]) {
 	}
 //getopt method to get the input
 	int option = 0;
-	struct mData* main_struct = malloc(1 * sizeof *main_struct);
+	struct mData* main_struct = malloc(sizeof *main_struct);
 	char * sF = (char *) malloc(sizeof(char) * 25); //sF = sortingField. The arg after "-c"
 	char * wDir = (char *) malloc(sizeof(char) * 200); //wDir arg after -d
 	char * oDir = (char *) malloc(sizeof(char) * 200); //oDir arg after -o
@@ -417,10 +434,11 @@ int main(int argc, char* argv[]) {
 		pthread_exit((void*) -1);
 	}
 	printf("TIDS of all child threads: ");
+	printf("\n");
 	pthread_join(main_t, &ret);
 	//parse_dir(&dir_struct);
 	printf("\n");
 	printf("The total number of threads %d\n", counter_get(&t_counter));
-	print_final(main_struct,dir_struct);
+	print_final(main_struct, dir_struct);
 	return 0;
 }

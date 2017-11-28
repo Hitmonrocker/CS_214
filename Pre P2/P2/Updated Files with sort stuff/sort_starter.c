@@ -119,7 +119,11 @@ void *file_sort(void *str) {
 	// end checking
 
 	//convert
-	struct Sorter *st = (struct Sorter *) str;
+	struct Sorter *st ;
+	st = (struct Sorter *)str;
+		//printf("------ The sF is %d\n", st->comp_ptr);
+		printf("The wDir name is %s\n", st->wDir);
+		printf("The oDir name is %s\n", st->oDir);
 
 	//open the file
 	FILE *fp;
@@ -135,7 +139,7 @@ void *file_sort(void *str) {
 	char *line = NULL;	// pointer for each line
 	size_t len = 0;
 	ssize_t read;
-	int ctotal = 1;	// count the total number of tokens
+	int ctotal = 0;	// count the total number of tokens
 
 	// Skip the first line by reading and ignoring the extra data
 	read = getline(&line, &len, fp);
@@ -377,7 +381,9 @@ void *file_sort(void *str) {
 #define NUM (ctotal*2)
 			//printf("new threads = %d\n", NUM_THREADS);
 			hold1 = realloc(records, sizeof *records * NUM);
+			if(st->final->line_number < (NUM-1)){
 			hold2 = realloc(st->final, sizeof(st->final) * NUM);
+			}
 			if (hold1 == NULL || hold2 == NULL) { //realloc failed
 				printf("Realloc failed. Exiting");
 				fflush(stdout);
@@ -396,9 +402,12 @@ void *file_sort(void *str) {
 	//split(records, 1, ctotal - 1, compareArr, compareArr_size);
 
 	//insert new sort functions
+	int k = ctotal/20;
+	quickSort2(st->final,0,ctotal,k,st->comp_ptr);
+	bubbleSort(st->final,ctotal,st->comp_ptr);
 
 	pthread_mutex_lock(st->lock);
-	//Print(st,records, ctotal);
+	//Print(st,records);
 	pthread_mutex_unlock(st->lock);
 
 	return 0;

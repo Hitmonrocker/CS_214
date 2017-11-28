@@ -71,22 +71,3 @@ char *strip(char * input) {
 
 	return input;
 }
-
-
-/*
-int compareStrings(void *p1, void *p2)
- {
-	char *s1 = p1;
-	char *s2 = p2;
-
-	return strcmp(s1, s2);
-}
-
-int compareInts(void *a, void *b)
-{
-	int i = *(int*)a;
-	int j = *(int*)b;
-
-	return i - j;
-}
-*/
