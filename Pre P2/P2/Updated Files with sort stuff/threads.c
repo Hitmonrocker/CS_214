@@ -44,16 +44,16 @@ void print_final(struct mData *records, struct file_dir dir) {
 	//start here by creating the final file to print all this
 	//line_number is the total number of entries;
 
-	//print_stat(&dir);
+//	/print_stat(dir);
+	//printf("here\n");
 	char *outFile = (char *) malloc(sizeof(char) * 300);
 	strcpy(outFile, dir.oDir);
 	strcat(outFile, "/");
-	strcat(outFile, "-sorted");
-	strcat(outFile, "-");
+	strcat(outFile, "AllFiles-sorted-");
 	strcat(outFile, dir.sF);
 	strcat(outFile, ".csv");
 	wf = fopen(outFile, "w+");
-	//printf("ptr in: %c\n", first_ptr[0]);
+	//printf("ptr in: %s\n", outFile);
 
 	fprintf(wf,
 			"color,director_name,num_critic_for_reviews,duration,director_facebook_likes,actor_3_facebook_likes,"
@@ -148,6 +148,7 @@ void *parse_dir(void *st) {
 	struct file_dir *str;
 	struct file_dir* str1 = malloc(NUM_THREADS * sizeof *str1); // for new threads
 	struct wdir* wDir = malloc(NUM_THREADS * sizeof *wDir);
+	struct Sorter *sort = malloc(NUM_THREADS *sizeof *sort);
 	str = (struct file_dir *) st;
 
 	DIR *dir;
@@ -212,6 +213,7 @@ void *parse_dir(void *st) {
 					pthread_t self_id;
 					self_id = pthread_self();
 					fflush(stdout);
+					//print_stat(str);
 					//printf("(%s), %ld\n", dir_entry->d_name, self_id);
 					//printf("%ld,", self_id);
 					strcpy(wDir[i].wDir, str->wDir);
@@ -219,20 +221,19 @@ void *parse_dir(void *st) {
 					strcat(wDir[i].wDir, dir_entry->d_name);
 					//printf("WDIR IS = %s\n",wDir[i].wDir);
 
-					struct Sorter *sort = malloc(sizeof *sort);
-					if(sort ==NULL){
-						printf("Error allocating memory!\n");
-					}
-					sort->comp_ptr = str->compare;
-					sort->lock = &slock;
-					sort->wDir = wDir[i].wDir;
-					sort->oDir = str->oDir;
-					sort->final = str->final;
+
+					//printf("address of sort %p\n",sort);
+
+					sort[i].comp_ptr = str->compare;
+					sort[i].lock = &slock;
+					sort[i].wDir = wDir[i].wDir;
+					sort[i].oDir = str->oDir;
+					sort[i].final = str->final;
 					//printf("The wDir name is %s\n", sort->wDir);
 					//printf("The oDir T name is %s\n", sort->oDir);
 
 					//printf("WDIR IS = %s\n",wDir);
-					tc = pthread_create(&threads[i], NULL, file_sort, &sort);
+					tc = pthread_create(&threads[i], NULL, file_sort, &sort[i]);
 					i++;
 					counter_inc(&t_counter);
 				}
@@ -242,20 +243,22 @@ void *parse_dir(void *st) {
 		if (i == (NUM_THREADS - 1)) { //if threads are reaching the limit
 			//	printf("hit thread limit!, adding %d more threads\n",
 			//	(NUM_THREADS * (i * 2)));
-			void **hold1, **hold2, **hold3;
+			void **hold1, **hold2, **hold3, **hold4;
 #undef NUM_THREADS
 #define NUM_THREADS (i*2)
 			//printf("new threads = %d\n", NUM_THREADS);
 			hold1 = realloc(threads, sizeof(pthread_t) * (NUM_THREADS));
 			hold2 = realloc(wDir, sizeof(*wDir) * (NUM_THREADS));
 			hold3 = realloc(str1, sizeof(*str1) * (NUM_THREADS));
-			if (threads == NULL || wDir == NULL || str1 == NULL) { //realloc failed
+			hold4 = realloc(str1, sizeof(*sort) * (NUM_THREADS));
+			if (threads == NULL || wDir == NULL || str1 == NULL || sort == NULL) { //realloc failed
 				printf("Realloc failed. Exiting");
 				pthread_exit((void *) -1);
 			} else {
 				threads = (pthread_t *) hold1;
 				wDir = (struct wdir*) hold2;
 				str1 = (struct file_dir*) hold3;
+				sort = (struct Sorter*) hold4;
 
 			}
 		}
@@ -439,6 +442,11 @@ int main(int argc, char* argv[]) {
 	//parse_dir(&dir_struct);
 	printf("\n");
 	printf("The total number of threads %d\n", counter_get(&t_counter));
-	print_final(main_struct, dir_struct);
+	struct print st1;
+	st1.oDir = oDir;
+	st1.sF = sF;
+	printf("field %s, %s\n",st1.oDir,st1.sF);
+	printf(" Line NUmber %d. \n",  main_struct[2].line_number);
+	print_final(main_struct,dir_struct);
 	return 0;
 }

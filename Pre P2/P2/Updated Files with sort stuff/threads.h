@@ -12,6 +12,10 @@ struct file_dir{
 struct wdir{
 	char wDir[200];
 };
+struct print{
+	char *oDir;
+	char *sF;
+};
 
 struct Counter {
         int count;

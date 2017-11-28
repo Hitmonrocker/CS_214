@@ -49,63 +49,96 @@ char * checkIf(char * p) {
 	}
 }
 
-void Print(struct Sorter *st,struct mData records[]) {
+void Print(struct Sorter *st, struct mData records[], int size) {
 
-	printf(
-			"color,director_name,num_critic_for_reviews,duration,director_facebook_likes,actor_3_facebook_likes,"
-					"actor_2_name,actor_1_facebook_likes,gross,genres,actor_1_name,movie_title,num_voted_users,cast_total_facebook_likes,"
-					"actor_3_name,facenumber_in_poster,plot_keywords,movie_imdb_link,num_user_for_reviews,language,country,content_rating,budget,"
-					"title_year,actor_2_facebook_likes,imdb_score,aspect_ratio,movie_facebook_likes\n");
-	int i =0;
-	int size = st->final->line_number;
+	/*	printf(
+	 "color,director_name,num_critic_for_reviews,duration,director_facebook_likes,actor_3_facebook_likes,"
+	 "actor_2_name,actor_1_facebook_likes,gross,genres,actor_1_name,movie_title,num_voted_users,cast_total_facebook_likes,"
+	 "actor_3_name,facenumber_in_poster,plot_keywords,movie_imdb_link,num_user_for_reviews,language,country,content_rating,budget,"
+	 "title_year,actor_2_facebook_likes,imdb_score,aspect_ratio,movie_facebook_likes\n");
+	 */
+	int i = 0;
+
+	//int size = st->final->line_number;
+	printf("Size = %d\n", size);
 	for (; i < size; i++) {
 		//printf(" Movie %s. \n",  records[i].mTitle);
 		/*printf(
-				"%s,%s,%d,%d,%d,%d,%s,%d,%d,%s,%s,%s,%d,%d,%s,%d,%s,%s,%d,%s,%s,%s,%d,%d,%d,%g,%g,%d\n",
-				records[i].color, records[i].dName, records[i].review,
-				records[i].duration, records[i].dFbLikes, records[i].a3FbLikes,
-				records[i].a2Name, records[i].a1FbLikes, records[i].gross,
-				records[i].genres, records[i].a1Name, records[i].mTitle,
-				records[i].votes, records[i].castFbLikes, records[i].a3Name,
-				records[i].facenum, records[i].plot, records[i].movielink,
-				records[i].userReview, records[i].language, records[i].country,
-				records[i].cRating, records[i].budget, records[i].tYear,
-				records[i].a2FbLikes, records[i].imdbScore, records[i].aRatio,
-				records[i].movieFbLikes);*/
+		 "%s,%s,%d,%d,%d,%d,%s,%d,%d,%s,%s,%s,%d,%d,%s,%d,%s,%s,%d,%s,%s,%s,%d,%d,%d,%g,%g,%d\n",
+		 records[i].color, records[i].dName, records[i].review,
+		 records[i].duration, records[i].dFbLikes, records[i].a3FbLikes,
+		 records[i].a2Name, records[i].a1FbLikes, records[i].gross,
+		 records[i].genres, records[i].a1Name, records[i].mTitle,
+		 records[i].votes, records[i].castFbLikes, records[i].a3Name,
+		 records[i].facenum, records[i].plot, records[i].movielink,
+		 records[i].userReview, records[i].language, records[i].country,
+		 records[i].cRating, records[i].budget, records[i].tYear,
+		 records[i].a2FbLikes, records[i].imdbScore, records[i].aRatio,
+		 records[i].movieFbLikes);*/
 		//printf("\n");
-						strcpy(st->final->color,records[i].color);
-						strcpy(st->final->dName,records[i].dName);
-						st->final->review = records[i].review;
-						st->final->duration = records[i].duration;
-						st->final->dFbLikes = records[i].dFbLikes;
-						st->final->a3FbLikes = records[i].a3FbLikes;
-						strcpy(st->final->a2Name,records[i].a2Name);
-						st->final->a1FbLikes = records[i].a1FbLikes;
-						st->final->gross = records[i].gross;
-						strcpy(st->final->genres,records[i].genres);
-						strcpy(st->final->a1Name,records[i].a1Name);
-						strcpy(st->final->mTitle,records[i].mTitle);
-						st->final->votes = records[i].votes;
-						st->final-> castFbLikes = records[i].castFbLikes;
-						strcpy(st->final->a3Name, records[i].a3Name);
-						st->final->facenum = records[i].facenum;
-						strcpy(st->final->plot,records[i].plot);
-						strcpy(st->final->movielink,records[i].movielink);
-						st->final->userReview = records[i].userReview;
-						strcpy(st->final->language,records[i].language);
-						strcpy(st->final->country,records[i].country);
-						strcpy(st->final->cRating,records[i].cRating);
-						st->final->budget = records[i].budget;
-						st->final->tYear= records[i].tYear;
-						st->final->a2FbLikes = records[i].a2FbLikes;
-						st->final->imdbScore = records[i].imdbScore;
-						st->final->aRatio = records[i].aRatio;
-						st->final->movieFbLikes = records[i].movieFbLikes;
+		strcpy(st->final->color, records[i].color);
+
+		strcpy(st->final->dName, records[i].dName);
+		printf("Color field = %s\n", st->final->dName);
+		st->final->review = records[i].review;
+		st->final->duration = records[i].duration;
+		st->final->dFbLikes = records[i].dFbLikes;
+		st->final->a3FbLikes = records[i].a3FbLikes;
+		strcpy(st->final->a2Name, records[i].a2Name);
+		st->final->a1FbLikes = records[i].a1FbLikes;
+		st->final->gross = records[i].gross;
+		strcpy(st->final->genres, records[i].genres);
+		strcpy(st->final->a1Name, records[i].a1Name);
+		strcpy(st->final->mTitle, records[i].mTitle);
+		st->final->votes = records[i].votes;
+		st->final->castFbLikes = records[i].castFbLikes;
+		strcpy(st->final->a3Name, records[i].a3Name);
+		st->final->facenum = records[i].facenum;
+		strcpy(st->final->plot, records[i].plot);
+		strcpy(st->final->movielink, records[i].movielink);
+		st->final->userReview = records[i].userReview;
+		strcpy(st->final->language, records[i].language);
+		strcpy(st->final->country, records[i].country);
+		strcpy(st->final->cRating, records[i].cRating);
+		st->final->budget = records[i].budget;
+		st->final->tYear = records[i].tYear;
+		st->final->a2FbLikes = records[i].a2FbLikes;
+		st->final->imdbScore = records[i].imdbScore;
+		st->final->aRatio = records[i].aRatio;
+		st->final->movieFbLikes = records[i].movieFbLikes;
 
 	}
 	st->final->line_number = i;
 }
+/*	void Print(FILE *wf, struct mData records[], int size) {
 
+ fprintf(wf,
+ "color,director_name,num_critic_for_reviews,duration,director_facebook_likes,actor_3_facebook_likes,"
+ "actor_2_name,actor_1_facebook_likes,gross,genres,actor_1_name,movie_title,num_voted_users,cast_total_facebook_likes,"
+ "actor_3_name,facenumber_in_poster,plot_keywords,movie_imdb_link,num_user_for_reviews,language,country,content_rating,budget,"
+ "title_year,actor_2_facebook_likes,imdb_score,aspect_ratio,movie_facebook_likes\n");
+ int i;
+ for (i = 0; i < size; i++) {
+ //printf(" Movie %s. \n",  records[i].mTitle);
+
+ fprintf(wf,
+ "%s,%s,%d,%d,%d,%d,%s,%d,%d,%s,%s,%s,%d,%d,%s,%d,%s,%s,%d,%s,%s,%s,%d,%d,%d,%g,%g,%d\n",
+ records[i].color, records[i].dName, records[i].review,
+ records[i].duration, records[i].dFbLikes, records[i].a3FbLikes,
+ records[i].a2Name, records[i].a1FbLikes, records[i].gross,
+ records[i].genres, records[i].a1Name, records[i].mTitle,
+ records[i].votes, records[i].castFbLikes, records[i].a3Name,
+ records[i].facenum, records[i].plot, records[i].movielink,
+ records[i].userReview, records[i].language, records[i].country,
+ records[i].cRating, records[i].budget, records[i].tYear,
+ records[i].a2FbLikes, records[i].imdbScore, records[i].aRatio,
+ records[i].movieFbLikes);
+ //printf("\n");
+
+ }
+ fclose(wf);
+ }
+ */
 void *file_sort(void *str) {
 
 	//printf("File being analyzed is %s\n", filename);
@@ -119,11 +152,12 @@ void *file_sort(void *str) {
 	// end checking
 
 	//convert
-	struct Sorter *st ;
-	st = (struct Sorter *)str;
-		//printf("------ The sF is %d\n", st->comp_ptr);
-		printf("The wDir name is %s\n", st->wDir);
-		printf("The oDir name is %s\n", st->oDir);
+	struct Sorter *st;
+	st = (struct Sorter *) str;
+	//printf("------ The sF is %d\n", st->comp_ptr);
+	//printf("The wDir name is %s\n", st->wDir);
+	//printf("The oDir name is %s\n", st->oDir);
+	//printf("address of st %p\n",st);
 
 	//open the file
 	FILE *fp;
@@ -219,7 +253,7 @@ void *file_sort(void *str) {
 				//records[ctotal].a1FbLikes);
 				count++;
 				break;
-			case 89:
+			case 8:
 				stoi = atoi(p);
 				records[ctotal].gross = stoi;
 				//printf("the gross $ is %d.\n", records[ctotal].gross);
@@ -381,16 +415,16 @@ void *file_sort(void *str) {
 #define NUM (ctotal*2)
 			//printf("new threads = %d\n", NUM_THREADS);
 			hold1 = realloc(records, sizeof *records * NUM);
-			if(st->final->line_number < (NUM-1)){
-			hold2 = realloc(st->final, sizeof(st->final) * NUM);
+			if (st->final->line_number < (NUM - 1)) {
+				hold2 = realloc(st->final, sizeof(st->final) * NUM);
 			}
 			if (hold1 == NULL || hold2 == NULL) { //realloc failed
 				printf("Realloc failed. Exiting");
 				fflush(stdout);
 				pthread_exit((void *) -1);
-			}else{
-			records =(struct mData *) hold1;
-			st->final = (struct mData *)hold2;
+			} else {
+				records = (struct mData *) hold1;
+				st->final = (struct mData *) hold2;
 			}
 		}
 	}					// end while
@@ -400,15 +434,21 @@ void *file_sort(void *str) {
 	fclose(fp);
 	//MergeSort(records, pray, sF, field, 1, ctotal - 1);
 	//split(records, 1, ctotal - 1, compareArr, compareArr_size);
-
+	st->final->line_number = ctotal;
+	printf("size = %d\n", st->final->line_number);
 	//insert new sort functions
-	int k = ctotal/20;
-	quickSort2(st->final,0,ctotal,k,st->comp_ptr);
-	bubbleSort(st->final,ctotal,st->comp_ptr);
+	int k = ctotal / 20;
+	printf("The comp_ptr name is %d\n", st->comp_ptr);
+	quickSort2(records, 0, ctotal - 1, k, st->comp_ptr);
+	bubbleSort(records, ctotal - 1, st->comp_ptr);
 
-	pthread_mutex_lock(st->lock);
-	//Print(st,records);
-	pthread_mutex_unlock(st->lock);
+	FILE *wf;
+	wf = fopen("sorted.csv", "w+");
+
+	//pthread_mutex_lock(st->lock);
+	Print(st, records, ctotal);
+	//Print(wf,records,ctotal);
+	//pthread_mutex_unlock(st->lock);
 
 	return 0;
 }
