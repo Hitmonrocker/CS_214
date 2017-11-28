@@ -11,7 +11,7 @@
 #include "is.c"
 #include <pthread.h>
 #include "sort_starter.c"
-#define NUM_THREADS	8
+#define NUM_THREADS	512
 
 //global struct counter & lock
 struct Counter t_counter;
