@@ -48,72 +48,8 @@ char * checkIf(char * p) {
 		return new;
 	}
 }
-/*
-void Print(struct Sorter *st,struct mData records[],int size) {
+void Printw(FILE *wf, struct mData records[], int size) {
 
-	/*printf(
-			"color,director_name,num_critic_for_reviews,duration,director_facebook_likes,actor_3_facebook_likes,"
-					"actor_2_name,actor_1_facebook_likes,gross,genres,actor_1_name,movie_title,num_voted_users,cast_total_facebook_likes,"
-					"actor_3_name,facenumber_in_poster,plot_keywords,movie_imdb_link,num_user_for_reviews,language,country,content_rating,budget,"
-					"title_year,actor_2_facebook_likes,imdb_score,aspect_ratio,movie_facebook_likes\n");
-	*/
-	/*int i =0;
-	//int size = st->final->line_number;
-	for (; i < size; i++) {
-		//printf(" Movie %s. \n",  records[i].mTitle);
-		/*printf(
-				"%s,%s,%d,%d,%d,%d,%s,%d,%d,%s,%s,%s,%d,%d,%s,%d,%s,%s,%d,%s,%s,%s,%d,%d,%d,%g,%g,%d\n",
-				records[i].color, records[i].dName, records[i].review,
-				records[i].duration, records[i].dFbLikes, records[i].a3FbLikes,
-				records[i].a2Name, records[i].a1FbLikes, records[i].gross,
-				records[i].genres, records[i].a1Name, records[i].mTitle,
-				records[i].votes, records[i].castFbLikes, records[i].a3Name,
-				records[i].facenum, records[i].plot, records[i].movielink,
-				records[i].userReview, records[i].language, records[i].country,
-				records[i].cRating, records[i].budget, records[i].tYear,
-				records[i].a2FbLikes, records[i].imdbScore, records[i].aRatio,
-				records[i].movieFbLikes);*/
-		//printf("\n");
-					/*	strcpy(st->final->color,records[i].color);
-						strcpy(st->final->dName,records[i].dName);
-						st->final->review = records[i].review;
-						st->final->duration = records[i].duration;
-						st->final->dFbLikes = records[i].dFbLikes;
-						st->final->a3FbLikes = records[i].a3FbLikes;
-						strcpy(st->final->a2Name,records[i].a2Name);
-						st->final->a1FbLikes = records[i].a1FbLikes;
-						st->final->gross = records[i].gross;
-						strcpy(st->final->genres,records[i].genres);
-						strcpy(st->final->a1Name,records[i].a1Name);
-						strcpy(st->final->mTitle,records[i].mTitle);
-						st->final->votes = records[i].votes;
-						st->final-> castFbLikes = records[i].castFbLikes;
-						strcpy(st->final->a3Name, records[i].a3Name);
-						st->final->facenum = records[i].facenum;
-						strcpy(st->final->plot,records[i].plot);
-						strcpy(st->final->movielink,records[i].movielink);
-						st->final->userReview = records[i].userReview;
-						strcpy(st->final->language,records[i].language);
-						strcpy(st->final->country,records[i].country);
-						strcpy(st->final->cRating,records[i].cRating);
-						st->final->budget = records[i].budget;
-						st->final->tYear= records[i].tYear;
-						st->final->a2FbLikes = records[i].a2FbLikes;
-						st->final->imdbScore = records[i].imdbScore;
-						st->final->aRatio = records[i].aRatio;
-						st->final->movieFbLikes = records[i].movieFbLikes;
-
-	}
-	st->final->line_number = i;
-}
-*/
-void Print(FILE *wf, struct mData records[], int size) {
-
-	fprintf(wf,
-			"color,director_name,num_critic_for_reviews,duration,director_facebook_likes,actor_3_facebook_likes,"
-					"actor_2_name,actor_1_facebook_likes,gross,genres,actor_1_name,movie_title,num_voted_users,cast_total_facebook_likes,"
-					"actor_3_name,facenumber_in_poster,plot_keywords,movie_imdb_link,num_user_for_reviews,language,country,content_rating,budget,"
-					"title_year,actor_2_facebook_likes,imdb_score,aspect_ratio,movie_facebook_likes\n");
 	int i;
 	for (i = 0; i < size; i++) {
 		//printf(" Movie %s. \n",  records[i].mTitle);
@@ -431,16 +367,16 @@ void *file_sort(void *str) {
 	//split(records, 1, ctotal - 1, compareArr, compareArr_size);
 
 	//insert new sort functions
-	int k = ctotal/20;
-	quickSort2(records,0,ctotal-1,k,st->comp_ptr);
-	bubbleSort(records,ctotal-1,st->comp_ptr);
+//	int k = ctotal/20;
+//	quickSort2(records,0,ctotal-1,k,st->comp_ptr);
+//	bubbleSort(records,ctotal-1,st->comp_ptr);
 
 	FILE *wf;
-		wf = fopen("sorted.csv", "w+");
+		wf = fopen("temp.csv", "ab+");
 
 	//pthread_mutex_lock(st->lock);
 	//Print(st,records,ctotal);
-	Print(wf,records,ctotal);
+	Printw(wf,records,ctotal);
 	//pthread_mutex_unlock(st->lock);
 
 	return 0;

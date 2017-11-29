@@ -37,14 +37,252 @@ pthread_t pthread_self(void);
 int pthread_create(pthread_t *thread, const pthread_attr_t *attr,
 		void *(*start)(void *), void *arg);
 //printing
-void print_final(struct mData *records, struct file_dir dir);
-
-void print_final(struct mData *records, struct file_dir dir) {
+void print_final( struct file_dir dir, int comp_ptr);
+void print_final( struct file_dir dir, int comp_ptr) {
 	FILE *wf;
-	//start here by creating the final file to print all this
-	//line_number is the total number of entries;
+	FILE *fp;
+	fp = fopen("temp.csv", "r");
+	if (fp == NULL) {
+		printf("\n");
+		printf("Could not open file for sorting.\n");
+	}
 
-	//print_stat(&dir);
+	struct mData* records = malloc(200*sizeof(struct mData));// struct that hold all the tokens from lines
+	int count;// this will act as an index counter for each field of the struct
+	char *line = NULL;	// pointer for each line
+	size_t len = 0;
+	ssize_t read;
+	int ctotals = 0;	// count the total number of tokens
+	while ((read = getline(&line, &len, fp)) != -1) {
+		//printf("Retrieved line of length %zu :\n", read);
+		//printf("%s", line);
+		//printf("Entered string is %s \n", line);
+		char *p;
+
+		char * temp = NULL;
+		int stoi;
+		float stof;
+		char *result = (char *) malloc(8);
+
+		count = 0;
+
+		while ((p = strsep(&line, ",")) != NULL) {
+			//printf("Separated data is %s.\n", p);
+			//printf("counter is %d \n", count);
+		switch (count) {
+			case 0:
+				strcpy(records[ctotals].color, p);
+				//strcpy(rec[ctotals]->color, p);
+				//printf("the Color (rec[]) is %s->\n", rec[ctotals]->color);
+				//printf("the Color is %s.\n", records[ctotals].color);
+				//printf("counter is %d \n", count);
+				count++;
+				break;
+			case 1:
+				strcpy(records[ctotals].dName, p);
+				//strcpy(rec[ctotals]->dName, p);
+				//printf("Directors name (rec[]) is %s->\n", rec[ctotals]->dName);
+				//printf("Directors name  is %s.\n", records[ctotals].dName);
+				count++;
+				break;
+			case 2:
+				stoi = atoi(p);
+				records[ctotals].review = stoi;
+				//printf("the #reviewers is %d.\n", records[ctotals].review);
+				count++;
+				break;
+			case 3:
+				stoi = atoi(p);
+				records[ctotals].duration = stoi;
+				//printf("the duration is %d.\n", records[ctotals].duration);
+				count++;
+				break;
+			case 4:
+				stoi = atoi(p);
+				records[ctotals].dFbLikes = stoi;
+				//printf("the #of FB Likes is %d.\n", records[ctotals].dFbLikes);
+				count++;
+				break;
+			case 5:
+				stoi = atoi(p);
+				records[ctotals].a3FbLikes = stoi;
+				//printf("the Actor 3 FB likes is %d.\n",
+				//	records[ctotals].a3FbLikes);
+				count++;
+				break;
+			case 6:
+				strcpy(records[ctotals].a2Name, p);
+				//printf("the Actor 2 Name is %s.\n", records[ctotals].a2Name);
+				count++;
+				break;
+			case 7:
+				stoi = atoi(p);
+				records[ctotals].a1FbLikes = stoi;
+				//printf("the Actor 1 FB Likes is %d.\n",
+				//records[ctotals].a1FbLikes);
+				count++;
+				break;
+			case 8:
+				stoi = atoi(p);
+				records[ctotals].gross = stoi;
+				//printf("the gross $ is %d.\n", records[ctotals].gross);
+				count++;
+				break;
+			case 9:
+				strcpy(records[ctotals].genres, p);
+				//printf("the Genre is %s.\n", records[ctotals].genres);
+				count++;
+				break;
+			case 10:
+				strcpy(records[ctotals].a1Name, p);
+				//printf("the Actor 1 Name is %s.\n", records[ctotals].a1Name);
+				count++;
+				break;
+			case 11:
+				//p = checkIf(p);
+				strcpy(records[ctotals].mTitle, p);
+				//printf("the Movie title is %s.\n", records[ctotals].mTitle);
+				count++;
+				break;
+			case 12:
+				stoi = atoi(p);
+				records[ctotals].votes = stoi;
+				//printf("the #Votes is %d.\n", records[ctotals].votes);
+				count++;
+				break;
+			case 13:
+				stoi = atoi(p);
+				records[ctotals].castFbLikes = stoi;
+				//printf("the Cast FB Likes is %d.\n",
+				//records[ctotals].castFbLikes);
+				count++;
+				break;
+			case 14:
+				strcpy(records[ctotals].a3Name, p);
+				//printf("the Actor 3 Name is %s.\n", records[ctotals].a3Name);
+				count++;
+				break;
+			case 15:
+				stoi = atoi(p);
+				records[ctotals].facenum = stoi;
+				//printf("the poster Face count is %d.\n",
+				//	records[ctotals].facenum);
+				count++;
+				break;
+			case 16:
+				strcpy(records[ctotals].plot, p);
+				//printf("the Plot is %s.\n", records[ctotals].plot);
+				count++;
+				break;
+			case 17:
+				strcpy(records[ctotals].movielink, p);
+				//printf("the Movie URL is %s.\n", records[ctotals].movielink);
+				count++;
+				break;
+			case 18:
+				stoi = atoi(p);
+				records[ctotals].userReview = stoi;
+				//printf("the User Review is %d.\n", records[ctotals].userReview);
+				count++;
+				break;
+			case 19:
+				strcpy(records[ctotals].language, p);
+				//printf("the language is %s.\n", records[ctotals].language);
+				count++;
+				break;
+			case 20:
+				strcpy(records[ctotals].country, p);
+				//printf("the country is %s.\n", records[ctotals].country);
+				count++;
+				break;
+			case 21:
+				strcpy(records[ctotals].cRating, p);
+				//printf("the Content Rating is %s.\n", records[ctotals].cRating);
+				count++;
+				break;
+			case 22:
+				stoi = atoi(p);
+				records[ctotals].budget = stoi;
+				//printf("the Budget is %d.\n", records[ctotals].budget);
+				count++;
+				break;
+			case 23:
+				stoi = atoi(p);
+				records[ctotals].tYear = stoi;
+				//printf("the Release Year is %d.\n", records[ctotals].tYear);
+				count++;
+				break;
+			case 24:
+				stoi = atoi(p);
+				records[ctotals].a2FbLikes = stoi;
+				//printf("the Actor 2 FB Likes is %d.\n",
+				//	records[ctotals].a2FbLikes);
+				count++;
+				break;
+			case 25:
+				stof = atof(p);
+				records[ctotals].imdbScore = stof;
+				//printf("imdb  is %s\n", p);
+				//printf("the IMBD score is %g.\n", records[ctotals].imdbScore);
+				count++;
+				break;
+			case 26:
+				stof = atof(p);
+				records[ctotals].aRatio = stof;
+				//printf("aspect ratio is %s\n", p);
+				//printf("the Aspect Ratio is %g.\n", records[ctotals].aRatio);
+				count++;
+				break;
+			case 27:
+				stoi = atoi(p);
+				records[ctotals].movieFbLikes = stoi;
+				//printf("the Facebook Moive Likes data is %d.\n",
+				//records[ctotals].movieFbLikes);
+				count++;
+				break;
+			default:
+				printf("the added data is NULL.\n");
+			}
+			
+							}
+				if (count == 11) {
+				char *copy = malloc(strlen(line) + 1);
+				char *copy2 = malloc(strlen(line) + 1);
+				//printf("count = 12\n");
+				temp = line;
+
+				//printf("1 gline string in round 12 is %s.\n", temp);
+				if (temp[0] == '"') {
+					//	printf("Quotes encountered ******************************\n");
+					temp[0] = ' ';
+					strcpy(copy, line);
+					//	printf("1 copy string in round 12 is %s.\n", copy);
+					//	printf("temp string in round 12 is %s.\n", temp);
+					result = strtok(line, "\"");
+					strcpy(copy2, result);
+					result = strtok(NULL, "\"");
+					//	printf("2copy string in round 12 is %s.\n", copy);
+					///	printf("The result string is %s.\n", result);
+					result[0] = ' ';
+					line = result;
+					//	printf("line string in round 12 is %s.\n", line);
+					copy2 = checkIf(copy2);
+					strcpy(records[ctotals].mTitle, copy2);
+					//	printf("the movie data is %s.\n", records[ctotals].mTitle);
+					count++;
+
+									}
+							}
+							ctotals++;
+
+}
+fclose(fp);
+		
+	int k = ctotals / 20;
+	printf("The comp_ptr name is %d\n", comp_ptr);
+	quickSort2(records, 0, ctotals - 1, k, comp_ptr);
+	bubbleSort(records, ctotals - 1,comp_ptr);
+///////
 	char *outFile = (char *) malloc(sizeof(char) * 300);
 	strcpy(outFile, dir.oDir);
 	strcat(outFile, "/");
@@ -61,7 +299,8 @@ void print_final(struct mData *records, struct file_dir dir) {
 					"actor_3_name,facenumber_in_poster,plot_keywords,movie_imdb_link,num_user_for_reviews,language,country,content_rating,budget,"
 					"title_year,actor_2_facebook_likes,imdb_score,aspect_ratio,movie_facebook_likes\n");
 	int i = 0;
-	int size = records[0].line_number;
+	int size = ctotals;
+	printf("%d\n",size);
 	for (; i < size; i++) {
 		//printf(" Movie %s. \n",  records[i].mTitle);
 
@@ -178,8 +417,6 @@ void *parse_dir(void *st) {
 					|| strcmp(dir_entry->d_name, "..") == 0) {
 				continue;
 			}
-			pthread_t self_id;
-			self_id = pthread_self();
 			fflush(stdout);
 			//printf("Dir: Thread ID = %ld\n", self_id);
 			//printf("[%s], %ld\n", dir_entry->d_name, self_id);
@@ -209,8 +446,7 @@ void *parse_dir(void *st) {
 			if ((point = strrchr(point, '.')) != NULL) { //Check if the file is CSV
 				if (strcmp(point, ".csv") == 0) {
 					//chdir(str1.wDir);
-					pthread_t self_id;
-					self_id = pthread_self();
+					
 					fflush(stdout);
 					//printf("(%s), %ld\n", dir_entry->d_name, self_id);
 					//printf("%ld,", self_id);
@@ -417,7 +653,7 @@ int main(int argc, char* argv[]) {
 	dir_struct.final = main_struct;
 	//print_stat(&dir_struct);
 	pthread_t self_id;
-	self_id = pthread_self();
+					self_id = pthread_self();
 	printf("Initial PID: %ld\n", self_id);
 	counter_init(&t_counter);
 	//ONTO parsing directories
@@ -439,6 +675,7 @@ int main(int argc, char* argv[]) {
 	//parse_dir(&dir_struct);
 	printf("\n");
 	printf("The total number of threads %d\n", counter_get(&t_counter));
-	print_final(main_struct, dir_struct);
+	print_final( dir_struct,dir_struct.compare);
+	remove("temp.csv");
 	return 0;
 }
