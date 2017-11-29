@@ -48,8 +48,57 @@ char * checkIf(char * p) {
 		return new;
 	}
 }
-void Printw(FILE *wf, struct mData records[], int size) {
 
+void Print(struct Sorter *st, struct mData records[], int size) {
+	int i = st->final->line_number;
+	size +=i;
+	//printf("in_size is = %d\n", size);
+//	printf("new_size is = %d\n", i);
+	int inc = st->final->line_number;
+
+	for (; i < size; i++) {
+	//	printf("i is = %d\n", i);
+		//printf(" Movie %s. \n",  records[i].mTitle);
+		strcpy(st->final[i].color, records[i-inc].color);
+		strcpy(st->final[i].dName, records[i-inc].dName);
+		st->final[i].review = records[i-inc].review;
+		st->final[i].duration = records[i-inc].duration;
+		st->final[i].dFbLikes = records[i-inc].dFbLikes;
+		st->final[i].a3FbLikes = records[i-inc].a3FbLikes;
+		strcpy(st->final[i].a2Name, records[i-inc].a2Name);
+		st->final[i].a1FbLikes = records[i-inc].a1FbLikes;
+		st->final[i].gross = records[i-inc].gross;
+		strcpy(st->final[i].genres, records[i-inc].genres);
+		strcpy(st->final[i].a1Name, records[i-inc].a1Name);
+		strcpy(st->final[i].mTitle, records[i-inc].mTitle);
+		st->final[i].votes = records[i-inc].votes;
+		st->final[i].castFbLikes = records[i-inc].castFbLikes;
+		strcpy(st->final[i].a3Name, records[i-inc].a3Name);
+		st->final[i].facenum = records[i-inc].facenum;
+		strcpy(st->final[i].plot, records[i-inc].plot);
+		strcpy(st->final[i].movielink, records[i-inc].movielink);
+		st->final[i].userReview = records[i-inc].userReview;
+		strcpy(st->final[i].language, records[i-inc].language);
+		strcpy(st->final[i].country, records[i-inc].country);
+		strcpy(st->final[i].cRating, records[i-inc].cRating);
+		st->final[i].budget = records[i-inc].budget;
+		st->final[i].tYear = records[i-inc].tYear;
+		st->final[i].a2FbLikes = records[i-inc].a2FbLikes;
+		st->final[i].imdbScore = records[i-inc].imdbScore;
+		st->final[i].aRatio = records[i-inc].aRatio;
+		st->final[i].movieFbLikes = records[i-inc].movieFbLikes;
+
+	}
+	st->final->line_number = (i);
+}
+
+void Print2(FILE *wf, struct mData records[], int size) {
+
+	fprintf(wf,
+			"color,director_name,num_critic_for_reviews,duration,director_facebook_likes,actor_3_facebook_likes,"
+					"actor_2_name,actor_1_facebook_likes,gross,genres,actor_1_name,movie_title,num_voted_users,cast_total_facebook_likes,"
+					"actor_3_name,facenumber_in_poster,plot_keywords,movie_imdb_link,num_user_for_reviews,language,country,content_rating,budget,"
+					"title_year,actor_2_facebook_likes,imdb_score,aspect_ratio,movie_facebook_likes\n");
 	int i;
 	for (i = 0; i < size; i++) {
 		//printf(" Movie %s. \n",  records[i].mTitle);
@@ -84,9 +133,9 @@ void *file_sort(void *str) {
 	// end checking
 
 	//convert
-	struct Sorter *st ;
-	st = (struct Sorter *)str;
-		//printf("------ The sF is %d\n", st->comp_ptr);
+	struct Sorter *st;
+	st = (struct Sorter *) str;
+	//printf("------ The sF is %d\n", st->comp_ptr);
 	//	printf("The wDir name is %s\n", st->wDir);
 	//	printf("The oDir name is %s\n", st->oDir);
 
@@ -339,23 +388,33 @@ void *file_sort(void *str) {
 			}
 		}
 		ctotal++;
-		//printf("\n");
+
 		if (ctotal == (NUM - 1)) {
+			printf("ctotal = %d\n",ctotal);
 			void **hold1, **hold2;
 #undef NUM
-#define NUM (ctotal*2)
-			//printf("new threads = %d\n", NUM_THREADS);
+#define NUM (ctotal*4)
+			printf("new threads = %d\n", NUM);
 			hold1 = realloc(records, sizeof *records * NUM);
-			if(st->final->line_number < (NUM-1)){
-			hold2 = realloc(st->final, sizeof(st->final) * NUM);
+			int line = st->final->line_number;
+			if(line == 0){
+				line += ctotal*4;
 			}
+			hold2 = realloc(st->final, sizeof(st->final) * (NUM*line));
+
 			if (hold1 == NULL || hold2 == NULL) { //realloc failed
 				printf("Realloc failed. Exiting");
 				fflush(stdout);
 				pthread_exit((void *) -1);
-			}else{
-			records =(struct mData *) hold1;
-			st->final = (struct mData *)hold2;
+			} else {
+				printf("reallocing!\n");
+				records = (struct mData *) hold1;
+				st->final = (struct mData *) hold2;
+					//printf("The wDir name is %s\n", st->wDir);
+					//printf("The oDir name is %s\n", st->oDir);
+					//printf("the Movie title is %s.\n", records[ctotal].mTitle);
+					//printf("the Movie title is %s.\n", records[ctotal-1].mTitle);
+
 			}
 		}
 	}					// end while
@@ -367,17 +426,26 @@ void *file_sort(void *str) {
 	//split(records, 1, ctotal - 1, compareArr, compareArr_size);
 
 	//insert new sort functions
-//	int k = ctotal/20;
-//	quickSort2(records,0,ctotal-1,k,st->comp_ptr);
-//	bubbleSort(records,ctotal-1,st->comp_ptr);
+	int k = ctotal / 20;
+	quickSort2(records, 0, ctotal - 1, k, st->comp_ptr);
+	bubbleSort(records, ctotal - 1, st->comp_ptr);
 
 	FILE *wf;
-		wf = fopen("temp.csv", "ab+");
+	char name[100];
+	//printf("The wDir name is %s\n", st->wDir);
+	strcpy(name, "/ilab/users/hvp22/214/P2/D4");
+	strcat(name,"/sorted.csv");
 
-	//pthread_mutex_lock(st->lock);
-	//Print(st,records,ctotal);
-	Printw(wf,records,ctotal);
-	//pthread_mutex_unlock(st->lock);
+	wf = fopen(name, "w+");
 
-	return 0;
+	//printf("Match : %d\n", st->final[2].gross);
+	//printf("final line number = %d\n", st->final->line_number);
+	//printf("Moive_titel @4 = %s\n", st->final[4].mTitle);
+	pthread_mutex_lock(st->lock);
+	Print(st, records, ctotal);
+	//Print2(wf,st->final,ctotal);
+	//printf("Moive_title @8 = %s\n", st->final[11].mTitle);
+	pthread_mutex_unlock(st->lock);
+
+	pthread_exit(0);
 }

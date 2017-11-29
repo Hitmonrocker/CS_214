@@ -48,9 +48,9 @@ struct mData{
 
 void MergeSort(struct mData arr[],void** pray,int sF,char* field,int low,int high);
 void Merge(struct mData arr[],void** pray,int sF,char* field,int low,int mid,int high, int size);
-void Print(struct Sorter *st,struct mData arr[],int size);
+//void Print(struct Sorter *st,struct mData arr[],int size);
 int changePos(struct mData **records,int left,int right);
-void Print2(struct mData records[],int ctotal);
+void Print3(struct mData records[],int ctotal);
 char *strip(char * input);
 
 
