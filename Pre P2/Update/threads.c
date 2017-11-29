@@ -38,9 +38,9 @@ pthread_t pthread_self(void);
 int pthread_create(pthread_t *thread, const pthread_attr_t *attr,
 		void *(*start)(void *), void *arg);
 //printing
-void print_final(struct mData *records, struct file_dir dir);
+void print_final(struct mData *records, struct file_dir dir,int size);
 
-void print_final(struct mData *records, struct file_dir dir) {
+void print_final(struct mData *records, struct file_dir dir,int size) {
 	FILE *wf;
 	//start here by creating the final file to print all this
 	//line_number is the total number of entries;
@@ -53,7 +53,7 @@ void print_final(struct mData *records, struct file_dir dir) {
 	strcat(outFile, dir.sF);
 	strcat(outFile, ".csv");
 	wf = fopen(outFile, "w+");
-	//printf("W = %s\n", outFile);
+	printf("W = %s\n", outFile);
 	//printf("ptr in: %c\n", first_ptr[0]);
 
 	fprintf(wf,
@@ -63,8 +63,8 @@ void print_final(struct mData *records, struct file_dir dir) {
 					"title_year,actor_2_facebook_likes,imdb_score,aspect_ratio,movie_facebook_likes\n");
 	int i = 0;
 	//printf("here!\n");
-	int size = records[0].line_number;
-	//printf("last size is = %d\n", size);
+	//int size = records[0].line_number;
+	printf("last size is = %d\n", size);
 	for (; i < size; i++) {
 		//printf(" Movie %s. \n",  records[i].mTitle);
 
@@ -444,9 +444,10 @@ int main(int argc, char* argv[]) {
 	//parse_dir(&dir_struct);
 	printf("\n");
 	printf("The total number of threads %d\n", counter_get(&t_counter));
-	int k =  main_struct->line_number/20;
+	int size = main_struct->line_number;
+	int k =  size/20;
 	quickSort2(main_struct, 0, main_struct->line_number-1, k, dir_struct.compare);
 	bubbleSort(main_struct, main_struct->line_number-1, dir_struct.compare);
-	print_final(main_struct, dir_struct);
+	print_final(main_struct, dir_struct,size);
 	return 0;
 }

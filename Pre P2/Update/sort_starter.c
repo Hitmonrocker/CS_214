@@ -89,7 +89,8 @@ void Print(struct Sorter *st, struct mData records[], int size) {
 		st->final[i].movieFbLikes = records[i-inc].movieFbLikes;
 
 	}
-	st->final->line_number = (i);
+	st->final->line_number = i;
+	records[size-1].line_number=i;
 }
 
 void Print2(FILE *wf, struct mData records[], int size) {
@@ -426,9 +427,9 @@ void *file_sort(void *str) {
 	//split(records, 1, ctotal - 1, compareArr, compareArr_size);
 
 	//insert new sort functions
-	int k = ctotal / 20;
-	quickSort2(records, 0, ctotal - 1, k, st->comp_ptr);
-	bubbleSort(records, ctotal - 1, st->comp_ptr);
+	//int k = ctotal / 20;
+	//quickSort2(records, 0, ctotal - 1, k, st->comp_ptr);
+	//bubbleSort(records, ctotal - 1, st->comp_ptr);
 
 	FILE *wf;
 	char name[100];
