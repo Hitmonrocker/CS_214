@@ -431,14 +431,14 @@ void *file_sort(void *str) {
 	//quickSort2(records, 0, ctotal - 1, k, st->comp_ptr);
 	//bubbleSort(records, ctotal - 1, st->comp_ptr);
 
-	FILE *wf;
+/*	FILE *wf;
 	char name[100];
 	//printf("The wDir name is %s\n", st->wDir);
 	strcpy(name, "/ilab/users/hvp22/214/P2/D4");
 	strcat(name,"/sorted.csv");
 
 	wf = fopen(name, "w+");
-
+*/
 	//printf("Match : %d\n", st->final[2].gross);
 	//printf("final line number = %d\n", st->final->line_number);
 	//printf("Moive_titel @4 = %s\n", st->final[4].mTitle);
