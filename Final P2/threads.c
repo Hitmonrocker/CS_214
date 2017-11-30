@@ -421,9 +421,8 @@ int main(int argc, char* argv[]) {
 	dir_struct.compare = compare_size;
 	dir_struct.final = main_struct;
 	//print_stat(&dir_struct);
-	pthread_t self_id;
-	self_id = pthread_self();
-	printf("Initial PID: %ld\n", self_id);
+	
+	printf("Initial PID: %d\n", getpid());
 	counter_init(&t_counter);
 	//ONTO parsing directories
 	s_lock(slock);
