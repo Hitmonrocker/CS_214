@@ -2,8 +2,8 @@ CCFLAGS = -ggdb -Wall
 
 all: sc 
 
-sc: sorter_client.c is.c
-	gcc $(CCFLAGS) -pthread -o sc sorter_client.c sorter_client.h
+sc: sorter_server.c is.c
+	gcc $(CCFLAGS) -lpthread -o sc sorter_server.c sorter_server.h
 
 clean:
 	rm -rf sc
