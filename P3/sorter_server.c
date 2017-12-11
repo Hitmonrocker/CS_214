@@ -80,7 +80,7 @@ int main() {
 	int exit = 0;
 	char buffer[8];
 	while (strcmp(exit == 0)) {
-		readvalue = recv(client_socket, buffer, 7)
+		int readvalue = recv(client_socket, buffer, 7)
 		buffer[7] = '/0';
 		if (strcmp(buffer, "record") == 0) {
 			while (condition == 0) {
@@ -111,11 +111,17 @@ int main() {
 				//
 				//sort
 				//
+				//get the sorting field from client ; receive an int if possible
+				char *sF_buffer;
+				int receive_sF = recv(client_socket, sF_buffer, 4)
+				int sF; //sorting field
+				if(receive_sF>0){
+				sF = atoi(sF_buffer);
+				}else{
+					printf("error getting the sorting field.\n");
+				}
 				//send message that received sort request
 				send(client_socket, sort, strlen(sort));
-				//get the sorting field from client ; receive an int if possible
-				int sF; //sorting field
-
 				//sort now
 				quickSort(records, 0, ctotal,sF);
 
