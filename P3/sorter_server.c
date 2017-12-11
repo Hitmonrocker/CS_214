@@ -11,6 +11,8 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <stdbool.h>
+#include "sorter_server.h"
+#include "sorter.c"
 
 #define NUM 100 // make it big for storage
 
