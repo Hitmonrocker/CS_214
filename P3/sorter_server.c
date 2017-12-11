@@ -15,43 +15,152 @@
 /*
  * sort when asked to dumb
  */
-
+int headerDigitCount(int c_s);
+void getRecord(char* record, int c_s,int length);
+int byteCount(int c_s,int digitCount);
+//-----------------------------------------------------
 int main() {
 	int SERVER_PORT = 8876;
+	int server_socket = socket(AF_INET,SOCK_STREAM,0);
+
+	if (server_socket == 0)
+	{
+		printf("Error creating socket on server side faild\n");
+		exit(EXIT_FAILURE);
+	}
 
 // socket address used for the server
+
 	struct sockaddr_in server_address;
 	memset(&server_address, 0, sizeof(server_address));
 	server_address.sin_family = AF_INET;
 	server_address.sin_port = htons(SERVER_PORT);
 	server_address.sin_addr.s_addr = htonl(INADDR_ANY);
 
-// create a TCP socket, creation returns -1 on failure
-	int listen_sock;
-	if ((listen_sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-		printf("could not create listen socket\n");
-		return 1;
+// Binding
+	if(bind(server_socket, (struct sockaddr*)server_address ,sizeof(server_address))<0)
+	{
+		printf("Failed to bind socket\n");
+		exit(EXIT_FAILURE);
 	}
 
-//open a port and wait for connections
-	if ((bind(listen_sock, (struct sockaddr *) &server_address,
-			sizeof(server_address))) < 0) {
-		printf("could not bind socket\n");
-		return 1;
+// Listening waiting time 16
+	if(listen(server_socket,16)<0)
+	{
+		printf("Listening to socket failed\n");
+		exit(EXIT_FAILURE);
 	}
 
-	int wait_size = 16;  // maximum number of waiting clients, after which
-						 // dropping begins
-	if (listen(listen_sock, wait_size) < 0) {
-		printf("could not open socket for listening\n");
-		return 1;
+int client_socket;
+	client_socket = accept(server_socket,NULL,NULL);
+	if(client_socket == -1)
+	{
+		printf("Problem creating connection to socket %s\n",strerror(errno));
+		exit(EXIT_FAILURE);
+	}
+char *recieved = "Recieved record.";
+char *ack = "ready to read record";
+char *sorts = "ready to sort";
+
+
+// record transfer protocol
+
+char buffer[9];
+readvalue = recv(client_socket,buffer,7)
+buffer[7] = '/0';
+int condition = strcmp(buffer,"record")
+
+while(condition == 0)
+{
+	send(client_socket,ack,strlen(ack));
+	int headerLength;
+	int messageLength;
+	char* tempRec;
+
+	headerLength = headerDigitCount(client_socket);
+	if(headerLength<=0)
+		{
+			condition = 1;
+		}
+	else
+	{
+
+	messageLength = byteCount(client_socket,headerLength);
+	tempRec = malloc(sizeof(char)*messageLength);
+	getRecord(client_socket,tempRec,messageLength);
+	send(client_socket,recieved,strlen(recieved));
+	//add parse function here
+}
+
+return 0;
+}
+/*
+readvalue = recv(client_socket,buffer,4)
+buffer[4] = '/0';
+if(strcmp("sort",buffer)==0)
+{
+	//sort the file otherwise
+}*/
+//
+
+
+
+}
+//--------------------------------------------------
+void getRecord(int c_s,char* record,int length)
+{
+	int counter = 0;
+	int readvalue = 0;
+	while(counter<length)
+	{
+		readvalue = recv(c_s,record+counter,length-counter);
+		counter = readvalue;	
 	}
 
-	// socket address used to store client address
-	struct sockaddr_in client_address;
-	int client_address_len = 0;
+return;
+}
 
+int byteCount(int c_s,int digitCount)
+{	
+char* buffer = (char*) malloc(sizeof(char)*digitCount);
 
+int readvalue = 0;
+while(readvalue==0)
+	readvalue = recv(c_s,buffer,1);
+readvalue = 0;
+readvalue = recv(c_s,buffer,digitCount);
+	if(readvalue == digitCount)
+	{
+		return atoi(buffer);
+	}
+	else
+	{
+		printf("%s\n","Error has occured when reading header" );
+		exit(EXIT_FAILURE);
+		return 0;
+	}
+}
 
-	close(listen_sock);
+int headerDigitCount(int c_s,)
+{
+	// read header digit count
+char* buffer = (char*) malloc(sizeof(char)*9);
+int exit_condition = 1;
+int buffer_tracker = 0;
+int readvalue;
+while(exit_condition == 1)
+{
+
+readvalue = recv(c_s,buffer+buffer_tracker,1);
+	if(readvalue == 1)
+	{
+		buffer_tracker++;
+	}
+	if(buffer[buffer_tracker] = '@')
+	{
+		exit_condition = 0;
+		buffer[buffer_tracker] = '\0';
+	}
+}
+return atoi(buffer);
 }
