@@ -59,49 +59,62 @@ int client_socket;
 		exit(EXIT_FAILURE);
 	}
 char *recieved = "Recieved record.";
-char *ack = "ready to read record";
-char *sorts = "ready to sort";
+char *ack = "Recording";
+char *sorts = "Sorting";
+char *ret = "Returning";
+
 
 
 // record transfer protocol
-
-char buffer[9];
-readvalue = recv(client_socket,buffer,7)
-buffer[7] = '/0';
-int condition = strcmp(buffer,"record")
-
-while(condition == 0)
-{
-	send(client_socket,ack,strlen(ack));
-	int headerLength;
-	int messageLength;
-	char* tempRec;
-
-	headerLength = headerDigitCount(client_socket);
-	if(headerLength<=0)
+int exit = 0;
+char buffer[8];
+while(strcmp(exit == 0))
+{	
+	readvalue = recv(client_socket,buffer,7)
+	buffer[7] = '/0';
+	if(strcmp(buffer,"record")==0)
 		{
-			condition = 1;
+			while(condition == 0)
+			{
+			
+				send(client_socket,ack,strlen(ack));
+				int headerLength;
+				int messageLength;
+				char* tempRec;
+
+				headerLength = headerDigitCount(client_socket);
+					if(headerLength<=0)
+						{
+							condition = -1;
+						}
+					else
+						{
+
+							messageLength = byteCount(client_socket,headerLength);
+							tempRec = malloc(sizeof(char)*messageLength);
+							getRecord(client_socket,tempRec,messageLength);
+							send(client_socket,recieved,strlen(recieved));
+							//add parse function here
+						}
+			}
 		}
-	else
+	if(strcmp(buffer,"sort")==0)
+	{		
+		//
+	//sort
+		//
+	}
+	if(strcmp(buffer,"return")==0)
 	{
+		//
+	//return
+		//
+		exit = 1;
+	}
 
-	messageLength = byteCount(client_socket,headerLength);
-	tempRec = malloc(sizeof(char)*messageLength);
-	getRecord(client_socket,tempRec,messageLength);
-	send(client_socket,recieved,strlen(recieved));
-	//add parse function here
+
 }
-
 return 0;
-}
-/*
-readvalue = recv(client_socket,buffer,4)
-buffer[4] = '/0';
-if(strcmp("sort",buffer)==0)
-{
-	//sort the file otherwise
-}*/
-//
 
 
 
