@@ -21,7 +21,9 @@
  */
 //Globals
 struct mData* records; // struct that hold all the tokens from lines
+struct fileNames* fnames;  //save filenames
 int ctotal = 0;	// count the total number of entries in the struct
+int fcount = 0; // number of files in the data struct
 
 //Functions
 int headerDigitCount(int c_s);
@@ -32,6 +34,7 @@ int byteCount(int c_s, int digitCount);
 char* checkIf(char * p);
 int isspace(int c);
 void Print(struct mData records[], int size);
+void print2file(FILE *nf, struct mData records[], int size);
 int parse_line(char * line);
 
 //-----------------------------------------------------
@@ -76,6 +79,10 @@ int main() {
 	char *sorts = "Sorting";
 	char *ret = "Returning";
 
+	//make space for the struct
+	records = malloc(NUM * sizeof *records);
+	fnames = malloc(NUM *sizeof(*fileNames));
+
 	// record transfer protocol
 	int exit = 0;
 	char buffer[8];
@@ -115,16 +122,34 @@ int main() {
 				char *sF_buffer;
 				int receive_sF = recv(client_socket, sF_buffer, 4)
 				int sF; //sorting field
-				if(receive_sF>0){
-				sF = atoi(sF_buffer);
-				}else{
+				if (receive_sF > 0) {
+					sF = atoi(sF_buffer);
+				} else {
 					printf("error getting the sorting field.\n");
 				}
 				//send message that received sort request
 				send(client_socket, sort, strlen(sort));
 				//sort now
-				quickSort(records, 0, ctotal,sF);
+				quickSort(records, 0, ctotal, sF);
 
+				//print the sorted result to the file
+				char filename[100];
+				char buffer[4];
+				strcpy(filename, "file");
+				printf("%s\n", filename);
+				sprintf(buffer, "%d", sF);
+				strcat(filename, buffer);
+				printf("New filename: %s\n", filename);
+				//prints and closes the file desc
+				FILE nf*;
+				nf = fopen(newfile, "w+");
+				if(nf != 0){
+					printf("Error creating file for storing sorted results!\n");
+					exit(EXIT_FAILURE);
+				}
+				strcpy(fnames[fcount].name,filename);
+				fcount++;
+				print2file(nf, records, ctotal);
 
 			}
 			if (strcmp(buffer, "return") == 0) {
@@ -193,7 +218,6 @@ int main() {
 
 	int parse_line(char *line) {
 
-		records = malloc(NUM * sizeof *records);
 		//char word;	// just a variable
 		int count;// this will act as an index counter for each field of the struct
 		//char *line ;
@@ -489,4 +513,36 @@ int main() {
 
 		}
 	}
+
+	void print2file(FILE *nf, struct mData records[], int size) {
+
+		fprintf(nf,
+				"color,director_name,num_critic_for_reviews,duration,director_facebook_likes,actor_3_facebook_likes,"
+						"actor_2_name,actor_1_facebook_likes,gross,genres,actor_1_name,movie_title,num_voted_users,cast_total_facebook_likes,"
+						"actor_3_name,facenumber_in_poster,plot_keywords,movie_imdb_link,num_user_for_reviews,language,country,content_rating,budget,"
+						"title_year,actor_2_facebook_likes,imdb_score,aspect_ratio,movie_facebook_likes\n");
+		int i;
+		for (i = 0; i < size; i++) {
+			//printf(" Movie %s. \n",  records[i].mTitle);
+
+			fprintf(nf,
+					"%s,%s,%d,%d,%d,%d,%s,%d,%d,%s,%s,%s,%d,%d,%s,%d,%s,%s,%d,%s,%s,%s,%d,%d,%d,%g,%g,%d\n",
+					records[i].color, records[i].dName, records[i].review,
+					records[i].duration, records[i].dFbLikes,
+					records[i].a3FbLikes, records[i].a2Name,
+					records[i].a1FbLikes, records[i].gross, records[i].genres,
+					records[i].a1Name, records[i].mTitle, records[i].votes,
+					records[i].castFbLikes, records[i].a3Name,
+					records[i].facenum, records[i].plot, records[i].movielink,
+					records[i].userReview, records[i].language,
+					records[i].country, records[i].cRating, records[i].budget,
+					records[i].tYear, records[i].a2FbLikes,
+					records[i].imdbScore, records[i].aRatio,
+					records[i].movieFbLikes);
+			//printf("\n");
+
+		}
+		fclose(nf);
+	}
+}
 

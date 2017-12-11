@@ -1,10 +1,10 @@
 CCFLAGS = -ggdb -Wall
 
-all: sc 
+all: server 
 
-sc: sorter_server.c sorter.c
+server: sorter_server.c sorter.c
 	gcc $(CCFLAGS) -lpthread -o sc sorter_server.c sorter_server.h sorter.c
 
 clean:
-	rm -rf sc
+	rm -rf server
 
