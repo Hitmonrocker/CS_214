@@ -109,6 +109,15 @@ int main() {
 				//
 				//sort
 				//
+				//send message that received sort request
+				send(client_socket, sort, strlen(sort));
+				//get the sorting field from client ; receive an int if possible
+				int sF; //sorting field
+
+				//sort now
+				quickSort(records, 0, ctotal,sF);
+
+
 			}
 			if (strcmp(buffer, "return") == 0) {
 				//
