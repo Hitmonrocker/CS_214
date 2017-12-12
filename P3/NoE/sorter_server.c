@@ -29,6 +29,7 @@ int fcount = 0; // number of files in the data struct
 int headerDigitCount(int c_s);
 void getRecord(char* record, int c_s, int length);
 int byteCount(int c_s, int digitCount);
+void client_run(int client_socket);
 
 //parsing functions
 char* checkIf(char * p);
@@ -67,60 +68,101 @@ int main() {
 		printf("Listening to socket failed\n");
 		exit(EXIT_FAILURE);
 	}
-
-	int client_socket;
-	client_socket = accept(server_socket, NULL, NULL);
-	if (client_socket == -1) {
-		printf("Problem creating connection to socket %s\n", strerror(errno));
+// Listening waiting time 16
+	if(listen(server_socket,16)<0)
+	{
+		printf("Listening to socket failed\n");
 		exit(EXIT_FAILURE);
 	}
-	char *recieved = "Recieved record.";
-	char *ack = "Recording";
-	char *sorts = "Sorting";
-	char *ret = "Returning";
 
-	//make space for the struct
-	records = malloc(NUM * sizeof *records);
-	fnames = malloc(NUM * sizeof(*fnames));
+int client_socket;
+int pid;
+char* ack = "We got you";
+while(1)
+{
 
-	// record transfer protocol
-	int exit_loop = 0;
-	char buffer[8];
-	while (exit_loop == 0) {
-		int readvalue = recv(client_socket, buffer, 7, 0);
-		buffer[7] = '/0';
-		if (strcmp(buffer, "record") == 0) {
-			int condition;
-			while (condition == 0) {
+		client_socket = accept(server_socket,NULL,NULL);
+	if(client_socket == -1)
+	{
+		printf("Problem creating connection to socket %s\n",strerror(errno));
+		exit(EXIT_FAILURE);
+	}
+	pid = fork();
+		
+      if (pid < 0) {
+         perror("ERROR on fork");
+         exit(1);
+      }
+      
+      if (pid == 0) {
+         /* This is the client process */
+        	send(client_socket,ack,strlen(ack),0);
+        	printf("%d\n",client_socket);
+         client_run(client_socket);
+          close(client_socket);
+         exit(0);
+      }
+      else {
+         close(server_socket);
+      }
+}
+return 0;
 
-				send(client_socket, ack, strlen(ack), 0);
+
+
+}
+//--------------------------------------------------
+
+
+void client_run (int client_socket)
+{
+char *recieved = "Recieved record.";
+char *ack = "Recording";
+char *sorts = "Sorting";
+char *ret = "Returning";
+
+int condition = 0;
+// record transfer protocol
+int readvalue=0;
+char buffer[8];
+int exit = 0;
+while(exit ==  0)
+{	
+	readvalue = recv(client_socket,buffer,7,0);
+	buffer[7] = '\0';
+	if(strcmp(buffer,"record")==0)
+		{
+			while(condition == 0)
+			{
+			
+				send(client_socket,ack,strlen(ack),0);
 				int headerLength;
 				int messageLength;
 				char* tempRec;
 
 				headerLength = headerDigitCount(client_socket);
-				if (headerLength <= 0) {
-					condition = -1;
-				} else {
+					if(headerLength<=0)
+						{
+							condition = -1;
+						}
+					else
+						{
 
-					messageLength = byteCount(client_socket, headerLength);
-					tempRec = malloc(sizeof(char) * messageLength);
-					getRecord(client_socket, tempRec, messageLength);
-					send(client_socket, recieved, strlen(recieved), 0);
-					//add parse function here
-					if (!parse_line(tempRec)) {
-						ctotal++;
-					}
-
-				}
+							messageLength = byteCount(client_socket,headerLength);
+							tempRec = malloc(sizeof(char)*messageLength);
+							getRecord(tempRec,client_socket,messageLength);
+							send(client_socket,recieved,strlen(recieved),0);
+							//add parse function here
+							if (!parse_line(tempRec)) {
+								ctotal++;
+								}
+						}
 			}
 		}
-		if (strcmp(buffer, "sort") == 0) {
-			//
-			//sort
-			//
-			//get the sorting field from client ; receive an int if possible
-			char *sF_buffer;
+	if(strcmp(buffer,"sort")==0)
+	{
+		//get the sorting field from client ; receive an int if possible
+			char *sF_buffer = (char*) malloc(sizeof(char)*4);
 			int receive_sF = recv(client_socket, sF_buffer, 4, 0);
 			int sF; //sorting field
 			if (receive_sF > 0) {
@@ -146,83 +188,86 @@ int main() {
 			nf = fopen(filename, "w+");
 			if (nf != 0) {
 				printf("Error creating file for storing sorted results!\n");
-				exit(0);
 			}
 			strcpy(fnames[fcount].name, filename);
 			fcount++;
 			print2file(nf, records, ctotal);
 
 		}
-		if (strcmp(buffer, "return") == 0) {
-			//
-			//return
-			//
-			exit_loop = 1;
-		}
-
+	if(strcmp(buffer,"return")==0)
+	{
+		//
+	//return
+		//
+		exit = 1;
 	}
 
-	close(client_socket);
-	close(server_socket);
-	return 0;
 
-}			//end main
-
-//--------------------------------------------------
-void getRecord(char* record, int c_s, int length) {
+}
+}
+void getRecord(char* record,int c_s,int length)
+{
 	int counter = 0;
 	int readvalue = 0;
-	while (counter < length) {
-		readvalue = recv(c_s, record + counter, length - counter, 0);
-		counter = readvalue;
+	while(counter<length)
+	{
+		readvalue = recv(c_s,record+counter,length-counter,0);
+		counter = readvalue;	
 	}
 
-	return;
+return;
 }
 
-int byteCount(int c_s, int digitCount) {
-	char* buffer = (char*) malloc(sizeof(char) * digitCount);
+int byteCount(int c_s,int digitCount)
+{	
+char* buffer = (char*) malloc(sizeof(char)*digitCount);
 
-	int readvalue = 0;
-	while (readvalue == 0)
-		readvalue = recv(c_s, buffer, 1, 0);
-	readvalue = 0;
-	readvalue = recv(c_s, buffer, digitCount, 0);
-	if (readvalue == digitCount) {
+int readvalue = 0;
+while(readvalue==0)
+	readvalue = recv(c_s,buffer,1,0);
+readvalue = 0;
+readvalue = recv(c_s,buffer,digitCount,0);
+	if(readvalue == digitCount)
+	{
 		return atoi(buffer);
-	} else {
-		printf("%s\n", "Error has occured when reading header");
+	}
+	else
+	{
+		printf("%s\n","Error has occured when reading header" );
 		exit(EXIT_FAILURE);
 		return 0;
 	}
 }
 
-int headerDigitCount(int c_s) {
+int headerDigitCount(int c_s)
+{
 	// read header digit count
-	char* buffer = (char*) malloc(sizeof(char) * 9);
-	int exit_condition = 1;
-	int buffer_tracker = 0;
-	int readvalue;
-	while (exit_condition == 1) {
+char* buffer = (char*) malloc(sizeof(char)*9);
+int exit_condition = 1;
+int buffer_tracker = 0;
+int readvalue;
+while(exit_condition == 1)
+{
 
-		readvalue = recv(c_s, buffer + buffer_tracker, 1,0);
-		if (readvalue == 1) {
-			buffer_tracker++;
-		}
-		if (buffer[buffer_tracker] = '@') {
-			exit_condition = 0;
-			buffer[buffer_tracker] = '\0';
-		}
+readvalue = recv(c_s,buffer+buffer_tracker,1,0);
+	if(readvalue == 1)
+	{
+		buffer_tracker++;
 	}
-	return atoi(buffer);
+	if(buffer[buffer_tracker] =='@')
+	{
+		exit_condition = 0;
+		buffer[buffer_tracker] = '\0';
+	}
 }
-
+return atoi(buffer);
+}
 int parse_line(char *line) {
 
 	//char word;	// just a variable
 	int count;// this will act as an index counter for each field of the struct
 	//char *line ;
-	//line = "Color,Gore Verbinski,302,169,563,1000,Orlando Bloom,40000,309404152,Action|Adventure|Fantasy,Johnny Depp,Pirates of the Caribbean: At World's End ,471220,48350,Jack Davenport,0,goddess|marriage ceremony|marriage proposal|pirate|singapore,http://www.imdb.com/title/tt0449088/?ref_=fn_tt_tt_1,1238,English,USA,PG-13,300000000,2007,5000,7.1,2.35,0";
+	//line = "Color,Gore Verbinski,302,169,563,1000,Orlando Bloom,40000,309404152,Action|Adventure|Fantasy,Johnny Depp,Pirates of the Caribbean: At World's End ,471220,48350,Jack Davenport,0,goddess|marriage ceremony|marriage proposal|pirate|singapore,http://www.imdb.com/title/tt0449088/?ref_=fn_tt_tt_1,1238,English,USA,PG-13,300000000,2007,5000,7.1,2.35,0";
 
 	line = strdup(line); //important to do this or the following will segfault;
 
@@ -541,4 +586,3 @@ void print2file(FILE *nf, struct mData records[], int size) {
 	}
 	fclose(nf);
 }
-

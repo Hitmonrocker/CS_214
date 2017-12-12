@@ -33,9 +33,11 @@ struct mData{
 	country,content_rating,budget,title_year,actor_2_facebook_likes,imdb_score,aspect_ratio,movie_facebook_likes
 	*/
 };
-
 struct fileNames{
 	char name[100];
+};
+struct client_info{
+	int socketnum;
 };
 
 
