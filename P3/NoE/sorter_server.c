@@ -661,8 +661,8 @@ int getHeaderCount(int s)
 	int start = 1;
 	while(s > 0)
 		{
-			int mid_sum = s % (1*start);
-			s -= mid_sum*start;
+			int mid_sum = s % (10*start);
+			s = s -(mid_sum);
 			start*=10;
 			digitCount++; 
 		}
