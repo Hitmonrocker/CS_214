@@ -22,11 +22,13 @@
 //Globals
 struct mData* records; // struct that hold all the tokens from lines
 struct fileNames* fnames;  //save filenames
+pthread_mutex_t lock;
 int ctotal = 0;	// count the total number of entries in the struct
 int fcount = 0; // number of files in the data struct
 
 //Functions
 int headerDigitCount(int c_s);
+int getHeaderCount(int s);
 void getRecord(char* record, int c_s, int length);
 int byteCount(int c_s, int digitCount);
 void* client_run(void* client);
@@ -51,6 +53,7 @@ int main() {
 	// socket address used for the server
 
 	struct sockaddr_in server_address;
+	struct sockaddr_in client_address;
 	memset(&server_address, 0, sizeof(server_address));
 	server_address.sin_family = AF_INET;
 	server_address.sin_port = htons(SERVER_PORT);
@@ -69,88 +72,108 @@ int main() {
 		exit(EXIT_FAILURE);
 	}
 // Listening waiting time 16
-	if (listen(server_socket, 16) < 0) {
+	if(listen(server_socket,16)<0)
+	{
 		printf("Listening to socket failed\n");
 		exit(EXIT_FAILURE);
 	}
+pthread_mutex_init(&lock, NULL);
+int client_socket;
+struct client_info* ci =malloc(sizeof(struct client_info)*NUM);
+pthread_t *thread = malloc(sizeof(pthread_t)*NUM);
+int i = 0; 
+int tc = 0;
+char* ack = "We got you";
+struct sockaddr_in* ipv4;
+while(1)
+{
 
-	int client_socket;
-	struct client_info* ci = malloc(sizeof(struct client_info) * NUM);
-	pthread_t *thread = malloc(sizeof(pthread_t) * NUM);
-	int i = 0;
-	int tc = 0;
-	char* ack = "We got you";
-	while (1) {
-
-		client_socket = accept(server_socket, NULL, NULL);
-		if (client_socket == -1) {
-			printf("Problem creating connection to socket %s\n",
-					strerror(errno));
-			exit(EXIT_FAILURE);
-		}
-		ci[i].socketnum = client_socket;
-		tc = pthread_create(&thread[i], NULL, client_run, &ci[i]);
-		if (tc < 0) {
-			printf("Error creating thread\n");
-			close(server_socket);
-		}
-		/* This is the client process */
-		send(client_socket, ack, strlen(ack), 0);
-		printf("%d\n", client_socket);
-		close(client_socket);
-
-		if (i >= NUM) {
-			close(server_socket);
-		}
+		client_socket = accept(server_socket,(struct sockaddr*) &client_address,NULL);
+		ipv4 = (struct sockaddr_in*)&client_address;
+		struct in_addr ipAddr = ipv4->sin_addr;
+		char str[INET_ADDRSTRLEN];
+		inet_ntop(AF_INET, &ipAddr,str,INET_ADDRSTRLEN);
+	if(client_socket == -1)
+	{
+		printf("Problem creating connection to socket %s\n",strerror(errno));
+		exit(EXIT_FAILURE);
 	}
-	return 0;
+		ci[i].socketnum = client_socket;
+		tc = pthread_create(&thread[i],NULL,client_run,&ci[i]);
+		if(tc<0)
+		{
+			printf("Error creating thread\n" );
+		 close(server_socket);
+				}
+            /* This is the client process */
+        	send(client_socket,ack,strlen(ack),0);
+        	printf("%s\n",str); 
+         	close(client_socket);
+
+      if(i>=NUM) {
+         close(server_socket);
+      }
+}
+return 0;
+
+
 
 }
 //--------------------------------------------------
 
-void *client_run(void *client) {
+
+void *client_run (void *client)
+{ 
 	struct client_info * client_inf = (struct client_info*) client;
-	int client_socket = client_inf->socketnum;
-	char *recieved = "Recieved record.";
-	char *ack = "Recording";
-	char *sorts = "Sorting";
-	char *ret = "Returning";
+ int client_socket = client_inf->socketnum;
+char *recieved = "Recieved record.";
+char *ack = "Recording";
+char *sorts = "Sorting";
+char *ret = "Returning";
 
-	int condition = 0;
+int condition = 0;
 // record transfer protocol
-	int readvalue = 0;
-	char buffer[8];
-	int exit = 0;
-	while (exit == 0) {
-		readvalue = recv(client_socket, buffer, 7, 0);
-		buffer[7] = '\0';
-		if (strcmp(buffer, "record") == 0) {
-			while (condition == 0) {
-
-				send(client_socket, ack, strlen(ack), 0);
+int readvalue = 0;
+char buffer[8];
+int exit = 0;
+char filename[100];
+while(exit ==  0)
+{	
+	readvalue = recv(client_socket,buffer,7,0);
+	buffer[7] = '\0';
+	if(strcmp(buffer,"record")==0)
+		{
+			while(condition == 0)
+			{
+			
+				send(client_socket,ack,strlen(ack),0);
 				int headerLength;
 				int messageLength;
 				char* tempRec;
 
 				headerLength = headerDigitCount(client_socket);
-				if (headerLength <= 0) {
-					condition = -1;
-				} else {
+					if(headerLength<=0)
+						{
+							condition = -1;
+						}
+					else
+						{
 
-					messageLength = byteCount(client_socket, headerLength);
-					tempRec = malloc(sizeof(char) * messageLength);
-					getRecord(tempRec, client_socket, messageLength);
-					send(client_socket, recieved, strlen(recieved), 0);
-					//add parse function here
-					if (!parse_line(tempRec)) {
-						ctotal++;
-					}
-				}
-			}//end while
-		}//end of record
-		if (strcmp(buffer, "sort") == 0) {
-			//get the sorting field from client ; receive an int if possible
-			char *sF_buffer = (char*) malloc(sizeof(char) * 4);
+							messageLength = byteCount(client_socket,headerLength);
+							tempRec = malloc(sizeof(char)*messageLength);
+							getRecord(tempRec,client_socket,messageLength);
+							send(client_socket,recieved,strlen(recieved),0);
+							//add parse function here
+							if (!parse_line(tempRec)) {
+								ctotal++;
+								}
+						}
+			}
+		}
+	if(strcmp(buffer,"sort")==0)
+	{
+		//get the sorting field from client ; receive an int if possible
+			char *sF_buffer = (char*) malloc(sizeof(char)*4);
 			int receive_sF = recv(client_socket, sF_buffer, 4, 0);
 			int sF; //sorting field
 			if (receive_sF > 0) {
@@ -162,9 +185,8 @@ void *client_run(void *client) {
 			send(client_socket, sorts, strlen(sorts), 0);
 			//sort now
 			quickSort(records, 0, ctotal, sF);
-
+			char* n = "\n";
 			//print the sorted result to the file
-			char filename[100];
 			char buffer[4];
 			strcpy(filename, "file");
 			printf("%s\n", filename);
@@ -179,66 +201,135 @@ void *client_run(void *client) {
 			}
 			strcpy(fnames[fcount].name, filename);
 			fcount++;
+			pthread_mutex_lock(&lock);
 			print2file(nf, records, ctotal);
+			fprintf(nf,"%s",n);
+			pthread_mutex_unlock(&lock);
+			fclose(nf);
 
-		}//end of sort
-		if (strcmp(buffer, "return") == 0) {
-			//
-			// return
-			//
-			exit = 1;
-		}//end of return
+		}
+	if(strcmp(buffer,"return")==0)
+	{
+		char * buffer = malloc(sizeof(char)*1000);
+		if(!buffer)
+		{
+			return 0 ;
+		}
+		send(client_socket, ret, strlen(ret), 0);
+		FILE *reader;
+		reader = fopen(filename,"r");
+			if(reader)
+			{
+					char * buffer = malloc(sizeof(char)*1000);
+					if(!buffer)
+					{
+						return 0 ;
+					}
+	
+					char* message;
+					size_t s = 999;
+					reader = fopen("test.csv","r");
+				if(reader)
+				{
+					int size;
+					size = getline(&buffer,&s,reader) - 3;
+					char buff[9];
+				while(size > 0)
+				{
+					size = getline(&buffer,&s,reader) - 3;
+					int digit = getHeaderCount(size);
+					if(digit > 0)
+					{
+						message = (char*)malloc(sizeof(char)*(size+digit-2));
+						sprintf(buff,"%d",digit);
+						strcpy(message,buff);
+						strcat(message,"@");
+						sprintf(buff,"%d",size-3);
+						strcat(message,buff);
+						strcat(message,buffer);
+					}
+					else
+					{
+						message ="0@";
+					}
+						send(client_socket,message,strlen(message),0);
+				}
+				fclose(reader);
+				}
+
+
+				fclose(reader);
+			}
+			else
+			{
+				printf("Error file DNE");
+				
+			}
+
+		exit = 1;
+	}
+
 
 	}
-	close(client_socket);
-	return 0;
+		close(client_socket);
+		return 0;
 }
-void getRecord(char* record, int c_s, int length) {
+void getRecord(char* record,int c_s,int length)
+{
 	int counter = 0;
 	int readvalue = 0;
-	while (counter < length) {
-		readvalue = recv(c_s, record + counter, length - counter, 0);
-		counter = readvalue;
+	while(counter<length)
+	{
+		readvalue = recv(c_s,record+counter,length-counter,0);
+		counter = readvalue;	
 	}
 
-	return;
+return;
 }
 
-int byteCount(int c_s, int digitCount) {
-	char* buffer = (char*) malloc(sizeof(char) * digitCount);
+int byteCount(int c_s,int digitCount)
+{	
+char* buffer = (char*) malloc(sizeof(char)*digitCount);
 
-	int readvalue = 0;
-	while (readvalue == 0)
-		readvalue = recv(c_s, buffer, 1, 0);
-	readvalue = 0;
-	readvalue = recv(c_s, buffer, digitCount, 0);
-	if (readvalue == digitCount) {
+int readvalue = 0;
+while(readvalue==0)
+	readvalue = recv(c_s,buffer,1,0);
+readvalue = 0;
+readvalue = recv(c_s,buffer,digitCount,0);
+	if(readvalue == digitCount)
+	{
 		return atoi(buffer);
-	} else {
-		printf("%s\n", "Error has occured when reading header");
+	}
+	else
+	{
+		printf("%s\n","Error has occured when reading header" );
 		exit(EXIT_FAILURE);
 		return 0;
 	}
 }
 
-int headerDigitCount(int c_s) {
+int headerDigitCount(int c_s)
+{
 	// read header digit count
-	char* buffer = (char*) malloc(sizeof(char) * 9);
-	int exit_condition = 1;
-	int buffer_tracker = 0;
-	int readvalue;
-	while (exit_condition == 1) {
+char* buffer = (char*) malloc(sizeof(char)*9);
+int exit_condition = 1;
+int buffer_tracker = 0;
+int readvalue;
+while(exit_condition == 1)
+{
 
-		readvalue = recv(c_s, buffer + buffer_tracker, 1, 0);
-		if (readvalue == 1) {
-			buffer_tracker++;
-		}
-		if (buffer[buffer_tracker] == '@') {
-			exit_condition = 0;
-			buffer[buffer_tracker] = '\0';
-		}
+readvalue = recv(c_s,buffer+buffer_tracker,1,0);
+	if(readvalue == 1)
+	{
+		buffer_tracker++;
 	}
-	return atoi(buffer);
+	if(buffer[buffer_tracker] =='@')
+	{
+		exit_condition = 0;
+		buffer[buffer_tracker] = '\0';
+	}
+}
+return atoi(buffer);
 }
 int parse_line(char *line) {
 
@@ -563,4 +654,17 @@ void print2file(FILE *nf, struct mData records[], int size) {
 
 	}
 	fclose(nf);
+}
+int getHeaderCount(int s)
+{
+	int digitCount = 0;
+	int start = 1;
+	while(s > 0)
+		{
+			int mid_sum = s % (1*start);
+			s -= mid_sum*start;
+			start*=10;
+			digitCount++; 
+		}
+		return digitCount;
 }
