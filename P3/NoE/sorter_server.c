@@ -29,7 +29,7 @@ int fcount = 0; // number of files in the data struct
 int headerDigitCount(int c_s);
 void getRecord(char* record, int c_s, int length);
 int byteCount(int c_s, int digitCount);
-void client_run(int client_socket);
+void* client_run(void* client);
 
 //parsing functions
 char* checkIf(char * p);
@@ -76,7 +76,10 @@ int main() {
 	}
 
 int client_socket;
-int pid;
+struct client_info* ci =malloc(sizeof(struct client_info)*NUM);
+pthread_t *thread = malloc(sizeof(pthread_t)*NUM);
+int i = 0; 
+int tc = 0;
 char* ack = "We got you";
 while(1)
 {
@@ -87,22 +90,19 @@ while(1)
 		printf("Problem creating connection to socket %s\n",strerror(errno));
 		exit(EXIT_FAILURE);
 	}
-	pid = fork();
-		
-      if (pid < 0) {
-         perror("ERROR on fork");
-         exit(1);
-      }
-      
-      if (pid == 0) {
-         /* This is the client process */
+		ci[i].socketnum = client_socket;
+		tc = pthread_create(&thread[i],NULL,client_run,&ci[i]);
+		if(tc<0)
+		{
+			printf("Error creating thread\n" );
+		 close(server_socket);
+				}
+            /* This is the client process */
         	send(client_socket,ack,strlen(ack),0);
-        	printf("%d\n",client_socket);
-         client_run(client_socket);
-          close(client_socket);
-         exit(0);
-      }
-      else {
+        	printf("%d\n",client_socket); 
+         	close(client_socket);
+
+      if(i>=NUM) {
          close(server_socket);
       }
 }
@@ -114,8 +114,10 @@ return 0;
 //--------------------------------------------------
 
 
-void client_run (int client_socket)
-{
+void *client_run (void *client)
+{ 
+	struct client_info * client_inf = (struct client_info*) client;
+ int client_socket = client_inf->socketnum;
 char *recieved = "Recieved record.";
 char *ack = "Recording";
 char *sorts = "Sorting";
@@ -197,13 +199,14 @@ while(exit ==  0)
 	if(strcmp(buffer,"return")==0)
 	{
 		//
-	//return
+		// return
 		//
 		exit = 1;
 	}
 
 
-}
+	}
+		close(client_socket);
 }
 void getRecord(char* record,int c_s,int length)
 {
