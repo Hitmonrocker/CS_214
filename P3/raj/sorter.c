@@ -432,18 +432,20 @@ int main(int argc, char** argv) {
 	pthread_mutex_init(&tpool_mut, NULL);
 	newdir(cur_path);
 
-	while (true) {
+	bool done = false;
+	while (!done) {
 		size_t j = 0;
-		bool done = true;
+		done = true;
 		while (j < TPOOL_SIZE) {
+			pthread_mutex_lock(&tpool_mut);
 			if (tpool[j]) {
 				done = false;
 				pthread_join(tpool[j], NULL);
 				tpool[j] = 0;
 			}
 			++j;
+			pthread_mutex_unlock(&tpool_mut);
 		}
-		if (done) break;
 	}
 
 	//retrieve sorted files
