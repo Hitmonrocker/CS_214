@@ -54,6 +54,7 @@ int main() {
 
 	struct sockaddr_in server_address;
 	struct sockaddr_in client_address;
+	socklen_t client_addr_len = sizeof(client_address);
 	memset(&server_address, 0, sizeof(server_address));
 	server_address.sin_family = AF_INET;
 	server_address.sin_port = htons(SERVER_PORT);
@@ -88,7 +89,7 @@ struct sockaddr_in* ipv4;
 while(1)
 {
 
-		client_socket = accept(server_socket,(struct sockaddr*) &client_address,NULL);
+		client_socket = accept(server_socket,(struct sockaddr*) &client_address,&client_addr_len);
 		ipv4 = (struct sockaddr_in*)&client_address;
 		struct in_addr ipAddr = ipv4->sin_addr;
 		char str[INET_ADDRSTRLEN];

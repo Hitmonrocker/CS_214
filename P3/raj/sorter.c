@@ -251,11 +251,16 @@ void* newfile(void* pathin) {
 		if (EOF == sscanf(temp, "%u", &r->movie_facebook_likes)) {
 			r->movie_facebook_likes = 0;
 		}
-
-		// lock the socket
-		pthread_mutex_lock(&socket_mut);
-		// send a line
-		pthread_mutex_unlock(&socket_mut);
+		// open a socket and connect
+		sockfd = socket(AF_INET, SOCK_STREAM, 0);
+		if(sockfd < 0) {
+			puts("Couldn't open a socket");
+			exit(-1);
+		}
+		if (connect(sockfd,(struct sockaddr *) &server_addr,sizeof(server_addr)) < 0){
+        	puts("Couldn't connect to server");
+        	exit(-1);
+		}
 		// do some housekeeping to prepare for the next line
 		records[current++] = r;
 
@@ -425,11 +430,6 @@ int main(int argc, char** argv) {
 	}
 	if(server == NULL) {
 		print_usage();
-		return -1;
-	}
-	sockfd = socket(AF_INET, SOCK_STREAM, 0);
-	if(sockfd < 0) {
-		puts("Couldn't open a socket");
 		return -1;
 	}
 	bzero((char *) &server_addr, sizeof(server_addr));
