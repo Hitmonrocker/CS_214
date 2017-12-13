@@ -31,14 +31,9 @@ pthread_mutex_t tpool_mut;
 pthread_t tpool[TPOOL_SIZE];
 size_t tpool_i = 0;
 
-pthread_mutex_t numthreads_mut;
-size_t numthreads;
-
 uint32_t port = 0;
-int32_t sockfd = 0;
 struct sockaddr_in server_addr;
 struct hostent *server = NULL;
-pthread_mutex_t socket_mut;
 
 char* columns[] = {"color",
                    "director_name",
@@ -92,10 +87,6 @@ void check_dir(char* path) {
 }
 
 void* newfile(void* pathin) {
-	pthread_mutex_lock(&numthreads_mut);
-	++numthreads;
-	pthread_mutex_unlock(&numthreads_mut);
-
 	char* path = (char*)pathin;
 	record** records;
 	int size = 0;
@@ -252,7 +243,7 @@ void* newfile(void* pathin) {
 			r->movie_facebook_likes = 0;
 		}
 		// open a socket and connect
-		sockfd = socket(AF_INET, SOCK_STREAM, 0);
+		int sockfd = socket(AF_INET, SOCK_STREAM, 0);
 		if(sockfd < 0) {
 			puts("Couldn't open a socket");
 			exit(-1);
@@ -261,6 +252,8 @@ void* newfile(void* pathin) {
         	puts("Couldn't connect to server");
         	exit(-1);
 		}
+		close(sockfd);
+	
 		// do some housekeeping to prepare for the next line
 		records[current++] = r;
 
@@ -298,9 +291,6 @@ void* newfile(void* pathin) {
 }
 
 void* newdir(void* pathin) {
-	pthread_mutex_lock(&numthreads_mut);
-	++numthreads;
-	pthread_mutex_unlock(&numthreads_mut);
 	// initialize some flags and variables
 	char* cur_path = (char*)pathin;
 	DIR* cur_dir = opendir(cur_path);
@@ -439,9 +429,7 @@ int main(int argc, char** argv) {
 
 	pthread_mutex_init(&mut, NULL);
 	pthread_mutex_init(&header_mut, NULL);
-	pthread_mutex_init(&numthreads_mut, NULL);
 	pthread_mutex_init(&tpool_mut, NULL);
-	pthread_mutex_init(&socket_mut, NULL);
 	newdir(cur_path);
 
 	while (true) {
@@ -469,7 +457,6 @@ int main(int argc, char** argv) {
 		print_record(csv_out, records_m[i]);
 	}
 	fclose(csv_out);
-	close(sockfd);
 	return 0;
 }
 
