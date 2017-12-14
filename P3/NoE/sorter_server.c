@@ -72,11 +72,6 @@ int main() {
 		printf("Listening to socket failed\n");
 		exit(EXIT_FAILURE);
 	}
-// Listening waiting time 16
-	if (listen(server_socket,16)<0) {
-		printf("Listening to socket failed\n");
-		exit(EXIT_FAILURE);
-	}
 	pthread_mutex_init(&lock, NULL);
 	int client_socket;
 
@@ -88,7 +83,7 @@ int main() {
 	int tc = 0;
 	char* ack = "We got you";
 	struct sockaddr_in* ipv4;
-	while (1) {
+	while (1 == 1) {
 
 		client_socket = accept(server_socket,(struct sockaddr*) &client_address,&client_addr_len);
 		ipv4 = (struct sockaddr_in*)&client_address;
@@ -100,14 +95,11 @@ int main() {
 			exit(EXIT_FAILURE);
 		}
 		ci[i].socketnum = client_socket;
-		tc = pthread_create(&thread[i],NULL,client_run,&ci[i]);
-		if (tc<0) {
-			printf("Error creating thread\n" );
-			close(server_socket);
-		}
-		/*
 		send(client_socket,ack,strlen(ack),0);
-		printf("%s\n",str);
+		tc = pthread_create(&thread[i],NULL,client_run,&ci[i]);
+		
+		
+		/*printf("%s\n",str);
 		close(client_socket);
 		if (i>=NUM) {
 			close(server_socket);
@@ -165,9 +157,11 @@ void *client_run (void *client) {
 						ctotal++;
 					}
 				}
+
 			}
-		} else if (!strcmp(buffer,"sort")) {
-			puts("sort");
+			Print(records,ctotal);
+		} else if (!strcmp(buffer,"sorter")) {
+			puts("sorter");
 			//get the sorting field from client ; receive an int if possible
 			char *sF_buffer = (char*) malloc(sizeof(char)*4);
 			int receive_sF = recv(client_socket, sF_buffer, 4, 0);
@@ -183,15 +177,16 @@ void *client_run (void *client) {
 			quickSort(records, 0, ctotal, sF);
 			char* n = "\n";
 			//print the sorted result to the file
-			char buffer[4];
+			char buffer[8];
 			strcpy(filename, "file");
 			printf("%s\n", filename);
 			sprintf(buffer, "%d", sF);
 			strcat(filename, buffer);
+			strcat(filename, ".csv");
 			printf("New filename: %s\n", filename);
 			//prints and closes the file desc
 			FILE *nf;
-			nf = fopen(filename, "w+");
+			nf = fopen(filename, "wb+");
 			if (nf != 0) {
 				printf("Error creating file for storing sorted results!\n");
 			}
@@ -247,14 +242,12 @@ void *client_run (void *client) {
 
 			}
 			exit = 1;
-		} else {
-			puts(buffer);
-			exit = 1;
-		}
+		} 
 	}
-	Print(records, ctotal);
+	
 	close(client_socket);
 	return 0;
+
 }
 void getRecord(char* record,int c_s,int length, fd_set socks) {
 	select(c_s+1, &socks, NULL, NULL, NULL);
@@ -591,13 +584,8 @@ void Print(struct mData records[], int size) {
 
 void print2file(FILE *nf, struct mData records[], int size) {
 
-	fprintf(nf,
-	        "color,director_name,num_critic_for_reviews,duration,director_facebook_likes,actor_3_facebook_likes,"
-	        "actor_2_name,actor_1_facebook_likes,gross,genres,actor_1_name,movie_title,num_voted_users,cast_total_facebook_likes,"
-	        "actor_3_name,facenumber_in_poster,plot_keywords,movie_imdb_link,num_user_for_reviews,language,country,content_rating,budget,"
-	        "title_year,actor_2_facebook_likes,imdb_score,aspect_ratio,movie_facebook_likes\n");
 	int i;
-	for (i = 0; i < size; i++) {
+	for (i = 1; i <= size; i++) {
 		//printf(" Movie %s. \n",  records[i].mTitle);
 
 		fprintf(nf,
@@ -615,7 +603,6 @@ void print2file(FILE *nf, struct mData records[], int size) {
 		//printf("\n");
 
 	}
-	fclose(nf);
 }
 int getHeaderCount(int s) {
 	int digitCount = 0;
