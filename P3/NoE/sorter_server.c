@@ -158,7 +158,6 @@ void *client_run (void *client) {
 					messageLength = byteCount(client_socket,headerLength, socks);
 					tempRec = malloc(sizeof(char)*messageLength);
 					getRecord(tempRec,client_socket,messageLength, socks);
-					puts("got record");
 					send(client_socket,recieved,strlen(recieved),0);
 					//add parse function here
 					if (!parse_line(tempRec)) {
@@ -252,7 +251,7 @@ void *client_run (void *client) {
 			exit = 1;
 		}
 	}
-	Print(records, ctotal);
+	//Print(records, ctotal);
 	close(client_socket);
 	return 0;
 }

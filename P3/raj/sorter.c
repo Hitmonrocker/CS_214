@@ -171,7 +171,7 @@ void* newfile(void* pathin) {
 
 		write(sockfd, sendbuf, strlen(sendbuf));
 		read_sock(sockfd, buf, 20, 0, socks);
-		puts(buf);
+		//puts(buf);
 	
 		// do some housekeeping to prepare for the next line
 		if (current >= size) {
