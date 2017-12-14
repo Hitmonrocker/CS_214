@@ -145,7 +145,7 @@ void *client_run (void *client) {
 		if (!strcmp(buffer,"record")) {
 			condition = 0;
 			while (condition == 0) {
-				printf("bytes %ld\n", send(client_socket,ack,strlen(ack),0));
+				send(client_socket,ack,strlen(ack),0);
 				int headerLength;
 				int messageLength;
 				char* tempRec;
@@ -157,6 +157,7 @@ void *client_run (void *client) {
 					messageLength = byteCount(client_socket,headerLength, socks);
 					tempRec = malloc(sizeof(char)*messageLength);
 					getRecord(tempRec,client_socket,messageLength, socks);
+					puts("got record");
 					send(client_socket,recieved,strlen(recieved),0);
 					//add parse function here
 					if (!parse_line(tempRec)) {
@@ -255,15 +256,13 @@ void *client_run (void *client) {
 }
 void getRecord(char* record,int c_s,int length, fd_set socks) {
 	select(c_s+1, &socks, NULL, NULL, NULL);
-	recv(c_s, record,length, MSG_WAITALL);
-	printf("record %s\n",record);
+	record[recv(c_s, record,length, MSG_WAITALL)] = 0;
 }
 
 int byteCount(int c_s,int digitCount, fd_set socks) {
 	char* buffer = (char*) malloc(sizeof(char)*digitCount);
 	select(c_s+1, &socks, NULL, NULL, NULL);
 	recv(c_s, buffer, digitCount, MSG_WAITALL);
-	printf("byte count %d\n",atoi(buffer));
 	return atoi(buffer);
 }
 
@@ -284,7 +283,6 @@ int headerDigitCount(int c_s, fd_set socks) {
 			buffer[buffer_tracker] = '\0';
 		}
 	}
-	printf("header dig %d\n",atoi(buffer));
 	return atoi(buffer);
 }
 int parse_line(char *line) {

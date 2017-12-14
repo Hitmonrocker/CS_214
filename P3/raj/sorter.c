@@ -170,10 +170,8 @@ void* newfile(void* pathin) {
 		//puts(sendbuf);
 
 		write(sockfd, sendbuf, strlen(sendbuf));
-		puts("reading");
 		read_sock(sockfd, buf, 20, 0, socks);
-		puts("read");
-		//puts(buf);
+		puts(buf);
 	
 		// do some housekeeping to prepare for the next line
 		if (current >= size) {
@@ -192,6 +190,7 @@ void* newfile(void* pathin) {
 			break;
 		}
 	}
+	puts("closing socket");
 	write(sockfd, "0@", strlen("0@"));
 	read_sock(sockfd, buf, 20, 0, socks);
 	close(sockfd);
