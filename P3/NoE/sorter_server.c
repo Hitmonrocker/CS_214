@@ -42,7 +42,7 @@ int parse_line(char * line);
 
 //-----------------------------------------------------
 int main() {
-	int SERVER_PORT = 8876;
+	int SERVER_PORT = 8877;
 	int server_socket = socket(AF_INET, SOCK_STREAM, 0);
 
 	if (server_socket == 0) {
@@ -79,6 +79,9 @@ int main() {
 	}
 	pthread_mutex_init(&lock, NULL);
 	int client_socket;
+
+	records = malloc(NUM * sizeof *records);
+	fnames = malloc(NUM * sizeof *fnames);
 	struct client_info* ci =malloc(sizeof(struct client_info)*NUM);
 	pthread_t *thread = malloc(sizeof(pthread_t)*NUM);
 	int i = 0;
@@ -103,11 +106,9 @@ int main() {
 			close(server_socket);
 		}
 		/*
-
 		send(client_socket,ack,strlen(ack),0);
 		printf("%s\n",str);
 		close(client_socket);
-
 		if (i>=NUM) {
 			close(server_socket);
 		}*/
@@ -251,6 +252,7 @@ void *client_run (void *client) {
 			exit = 1;
 		}
 	}
+	Print(records, ctotal);
 	close(client_socket);
 	return 0;
 }
@@ -305,12 +307,17 @@ int parse_line(char *line) {
 	int stoi;
 	float stof;
 
+	/*char *cpy = malloc(500);
+	strcpy(cpy,line);
+	while ((p = strsep(&cpy, ",")) != NULL) {
+		printf("Separated data is %s.\n", p);
+	}*/
+
 	count = 0;
 	//printf("Line = %s\n",line);
 	while ((p = strsep(&line, ",")) != NULL) {
 		//printf("Separated data is %s.\n", p);
 		//printf("counter is %d \n", count);
-
 		switch (count) {
 
 		case 0:
@@ -519,7 +526,8 @@ int parse_line(char *line) {
 			}
 		}
 	}
-	Print(records, ctotal);
+	//printf("ctotal = %d\n",ctotal);
+	//Print(records, ctotal);
 	return 0;
 }					//end parse
 
