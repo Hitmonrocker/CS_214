@@ -145,9 +145,7 @@ void *client_run (void *client) {
 		if (!strcmp(buffer,"record")) {
 			condition = 0;
 			while (condition == 0) {
-				puts("send");
 				printf("bytes %ld\n", send(client_socket,ack,strlen(ack),0));
-				puts("sent");
 				int headerLength;
 				int messageLength;
 				char* tempRec;
@@ -167,7 +165,7 @@ void *client_run (void *client) {
 				}
 			}
 		} else if (!strcmp(buffer,"sort")) {
-			puts("sort  ");
+			puts("sort");
 			//get the sorting field from client ; receive an int if possible
 			char *sF_buffer = (char*) malloc(sizeof(char)*4);
 			int receive_sF = recv(client_socket, sF_buffer, 4, 0);
@@ -275,13 +273,13 @@ int headerDigitCount(int c_s, fd_set socks) {
 	int exit_condition = 1;
 	int buffer_tracker = 0;
 	int readvalue;
-	while (exit_condition == 1) {
+	while (exit_condition) {
 		select(c_s+1, &socks, NULL, NULL, NULL);
 		readvalue = recv(c_s,buffer+buffer_tracker,1,0);
 		if (readvalue == 1) {
 			buffer_tracker++;
 		}
-		if (buffer[buffer_tracker] =='@') {
+		if (buffer[buffer_tracker-1] =='@') {
 			exit_condition = 0;
 			buffer[buffer_tracker] = '\0';
 		}

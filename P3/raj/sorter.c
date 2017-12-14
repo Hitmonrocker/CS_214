@@ -86,6 +86,11 @@ void check_dir(char* path) {
 	}
 }
 
+int read_sock(int sockfd, char* buf, int len, int flags, fd_set socks) {
+	select(sockfd+1, &socks, NULL, NULL, NULL);
+	return recv(sockfd, buf, len, flags);
+}
+
 void* newfile(void* pathin) {
 	char* path = (char*)pathin;
 	record** records;
@@ -143,8 +148,7 @@ void* newfile(void* pathin) {
 	FD_ZERO(&socks);
 	FD_SET(sockfd,&socks);
 	write(sockfd, "record", strlen("record"));
-	select(sockfd+1, &socks, NULL, NULL, NULL);
-	buf[read(sockfd, buf, 20)] = 0;
+	buf[read_sock(sockfd, buf, 20, 0, socks)] = 0;
 	printf("buf '%s'\n", buf);
 
 	char* raw = NULL;
@@ -166,9 +170,8 @@ void* newfile(void* pathin) {
 		//puts(sendbuf);
 
 		write(sockfd, sendbuf, strlen(sendbuf));
-		select(sockfd+1, &socks, NULL, NULL, NULL);
 		puts("reading");
-		read(sockfd, buf, 20);
+		read_sock(sockfd, buf, 20, 0, socks);
 		puts("read");
 		//puts(buf);
 	
@@ -181,7 +184,6 @@ void* newfile(void* pathin) {
 				exit(-1);
 			}
 		}
-
 		//get next line
 		raw = NULL;
 		n = 0;
@@ -191,7 +193,7 @@ void* newfile(void* pathin) {
 		}
 	}
 	write(sockfd, "0@", strlen("0@"));
-	read(sockfd, buf, 20);
+	read_sock(sockfd, buf, 20, 0, socks);
 	close(sockfd);
 
 	pthread_mutex_lock(&mut);
