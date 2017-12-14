@@ -7,3 +7,4 @@ server: sorter_server.c sort_server.h sorterQuickStruct.c
 
 clean:
 	rm -rf server
+	rm file*

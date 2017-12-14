@@ -86,7 +86,6 @@ int main() {
 	pthread_t *thread = malloc(sizeof(pthread_t)*NUM);
 	int i = 0;
 	int tc = 0;
-	char* ack = "We got you";
 	struct sockaddr_in* ipv4;
 	while (1) {
 		client_socket = accept(server_socket,(struct sockaddr*) &client_address,&client_addr_len);
@@ -117,7 +116,6 @@ int main() {
 
 //--------------------------------------------------
 void *client_run (void *client) {
-	puts("new socket");
 	struct client_info * client_inf = (struct client_info*) client;
 	int client_socket = client_inf->socketnum;
 	fd_set socks;
@@ -131,7 +129,6 @@ void *client_run (void *client) {
 	int condition = 0;
 
 	// record transfer protocol
-	int readvalue = 0;
 	char buffer[7];
 	int exit = 0;
 	char filename[100];
@@ -183,12 +180,11 @@ void *client_run (void *client) {
 			strcpy(filename, "file");
 			sprintf(buffer, "%d", sF);
 			strcat(filename, buffer);
-			printf("New filename: %s\n", filename);
 			//prints and closes the file desc
 			FILE *nf;
 			nf = fopen(filename, "w+");
 			if (nf == 0) {
-				printf("Error creating file for storing sorted results! %d\n", nf);
+				printf("Error creating file for storing sorted results!");
 			}
 			strcpy(fnames[fcount].name, filename);
 			fcount++;
@@ -198,7 +194,6 @@ void *client_run (void *client) {
 			pthread_mutex_unlock(&lock);
 			fclose(nf);
 		} else if (!strcmp(buffer,"return")) {
-			puts("return");
 			char * buffer = malloc(sizeof(char)*1000);
 			if (!buffer) {
 				return 0 ;
@@ -239,7 +234,6 @@ void *client_run (void *client) {
 				fclose(reader);
 			} else {
 				printf("Error file DNE");
-
 			}
 			exit = 1;
 		} else {

@@ -21,9 +21,7 @@
 void get_str(char**, char**);
 
 char* key = NULL;
-char* headers_m = NULL;
 pthread_mutex_t mut;
-pthread_mutex_t header_mut;
 record** records_m = NULL;
 size_t size_m = 0;
 
@@ -119,13 +117,6 @@ void* newfile(void* pathin) {
 	}
 	if (commas != 27) return 0;
 
-	//store the header if not already stored
-	pthread_mutex_lock(&header_mut);
-	if (headers_m == NULL) {
-		headers_m = alloc(strlen(headers)+1);
-		strcpy(headers_m, headers);
-	}
-	pthread_mutex_unlock(&header_mut);
 	free(headers);
 
 	// the file is valid, continue with processing
@@ -347,7 +338,6 @@ int main(int argc, char** argv) {
 	server_addr.sin_port = htons(port);
 
 	pthread_mutex_init(&mut, NULL);
-	pthread_mutex_init(&header_mut, NULL);
 	pthread_mutex_init(&tpool_mut, NULL);
 	newdir(cur_path);
 
@@ -389,12 +379,13 @@ int main(int argc, char** argv) {
 			read_sock(sockfd, buf, 20, 0, &socks);
 		}
 	}
+	write(sockfd, "return", strlen("return"));
+	read_sock(sockfd, buf, 20, 0, &socks);
 
 	// save the sorted csv
 	char* csv_out_path = alloc(PATH_MAX);
 	sprintf(csv_out_path, "%s/AllFiles-sorted-%s.csv", out_path, key);
 	FILE* csv_out = fopen(csv_out_path, "w");
-	fprintf(csv_out, "%s\n", headers_m);
 	for (size_t i = 0; i<size_m; ++i) {
 		print_record(csv_out, records_m[i]);
 	}
