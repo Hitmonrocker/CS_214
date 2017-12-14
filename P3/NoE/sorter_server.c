@@ -27,10 +27,10 @@ int ctotal = 0;	// count the total number of entries in the struct
 int fcount = 0; // number of files in the data struct
 
 //Functions
-int headerDigitCount(int c_s);
+int headerDigitCount(int c_s, fd_set);
 int getHeaderCount(int s);
-void getRecord(char* record, int c_s, int length);
-int byteCount(int c_s, int digitCount);
+void getRecord(char* record, int c_s, int length, fd_set);
+int byteCount(int c_s, int digitCount, fd_set);
 void* client_run(void* client);
 
 //parsing functions
@@ -102,14 +102,15 @@ int main() {
 			printf("Error creating thread\n" );
 			close(server_socket);
 		}
-		/* This is the client process */
+		/*
+
 		send(client_socket,ack,strlen(ack),0);
 		printf("%s\n",str);
 		close(client_socket);
 
 		if (i>=NUM) {
 			close(server_socket);
-		}
+		}*/
 	}
 	return 0;
 
@@ -122,37 +123,42 @@ int main() {
 void *client_run (void *client) {
 	struct client_info * client_inf = (struct client_info*) client;
 	int client_socket = client_inf->socketnum;
+	fd_set socks;
+	FD_ZERO(&socks);
+	FD_SET(client_socket, &socks);
 	char *recieved = "Recieved record.";
 	char *ack = "Recording";
 	char *sorts = "Sorting";
 	char *ret = "Returning";
 
 	int condition = 0;
-// record transfer protocol
+
+	// record transfer protocol
 	int readvalue = 0;
-	char buffer[8];
+	char buffer[7];
 	int exit = 0;
 	char filename[100];
 	while (exit ==  0) {
-		readvalue = recv(client_socket,buffer,7,0);
-		buffer[readvalue] = '\0';
-		puts(buffer);
-		if (strcmp(buffer,"record")==0) {
+		select(client_socket+1, &socks, NULL, NULL, NULL);
+		buffer[recv(client_socket,buffer,6,0)] = '\0';
+		printf("buffer '%s'\n", buffer);
+		if (!strcmp(buffer,"record")) {
+			condition = 0;
 			while (condition == 0) {
-
-				send(client_socket,ack,strlen(ack),0);
+				puts("send");
+				printf("bytes %ld\n", send(client_socket,ack,strlen(ack),0));
+				puts("sent");
 				int headerLength;
 				int messageLength;
 				char* tempRec;
-
-				headerLength = headerDigitCount(client_socket);
+				headerLength = headerDigitCount(client_socket, socks);
 				if (headerLength<=0) {
 					condition = -1;
+					exit = 1;
 				} else {
-
-					messageLength = byteCount(client_socket,headerLength);
+					messageLength = byteCount(client_socket,headerLength, socks);
 					tempRec = malloc(sizeof(char)*messageLength);
-					getRecord(tempRec,client_socket,messageLength);
+					getRecord(tempRec,client_socket,messageLength, socks);
 					send(client_socket,recieved,strlen(recieved),0);
 					//add parse function here
 					if (!parse_line(tempRec)) {
@@ -160,8 +166,8 @@ void *client_run (void *client) {
 					}
 				}
 			}
-		}
-		if (strcmp(buffer,"sort")==0) {
+		} else if (!strcmp(buffer,"sort")) {
+			puts("sort  ");
 			//get the sorting field from client ; receive an int if possible
 			char *sF_buffer = (char*) malloc(sizeof(char)*4);
 			int receive_sF = recv(client_socket, sF_buffer, 4, 0);
@@ -196,9 +202,8 @@ void *client_run (void *client) {
 			fprintf(nf,"%s",n);
 			pthread_mutex_unlock(&lock);
 			fclose(nf);
-
-		}
-		if (strcmp(buffer,"return")==0) {
+		} else if (!strcmp(buffer,"return")) {
+			puts("return");
 			char * buffer = malloc(sizeof(char)*1000);
 			if (!buffer) {
 				return 0 ;
@@ -211,7 +216,6 @@ void *client_run (void *client) {
 				if (!buffer) {
 					return 0 ;
 				}
-
 				char* message;
 				size_t s = 999;
 				reader = fopen("test.csv","r");
@@ -237,58 +241,42 @@ void *client_run (void *client) {
 					}
 					fclose(reader);
 				}
-
-
 				fclose(reader);
 			} else {
 				printf("Error file DNE");
 
 			}
-
+			exit = 1;
+		} else {
+			puts(buffer);
 			exit = 1;
 		}
-
-
 	}
 	close(client_socket);
 	return 0;
 }
-void getRecord(char* record,int c_s,int length) {
-	int counter = 0;
-	int readvalue = 0;
-	while (counter<length) {
-		readvalue = recv(c_s,record+counter,length-counter,0);
-		counter = readvalue;
-	}
-
-	return;
+void getRecord(char* record,int c_s,int length, fd_set socks) {
+	select(c_s+1, &socks, NULL, NULL, NULL);
+	recv(c_s, record,length, MSG_WAITALL);
+	printf("record %s\n",record);
 }
 
-int byteCount(int c_s,int digitCount) {
+int byteCount(int c_s,int digitCount, fd_set socks) {
 	char* buffer = (char*) malloc(sizeof(char)*digitCount);
-
-	int readvalue = 0;
-	while (readvalue==0)
-		readvalue = recv(c_s,buffer,1,0);
-	readvalue = 0;
-	readvalue = recv(c_s,buffer,digitCount,0);
-	if (readvalue == digitCount) {
-		return atoi(buffer);
-	} else {
-		printf("%s\n","Error has occured when reading header" );
-		exit(EXIT_FAILURE);
-		return 0;
-	}
+	select(c_s+1, &socks, NULL, NULL, NULL);
+	recv(c_s, buffer, digitCount, MSG_WAITALL);
+	printf("byte count %d\n",atoi(buffer));
+	return atoi(buffer);
 }
 
-int headerDigitCount(int c_s) {
+int headerDigitCount(int c_s, fd_set socks) {
 	// read header digit count
 	char* buffer = (char*) malloc(sizeof(char)*9);
 	int exit_condition = 1;
 	int buffer_tracker = 0;
 	int readvalue;
 	while (exit_condition == 1) {
-
+		select(c_s+1, &socks, NULL, NULL, NULL);
 		readvalue = recv(c_s,buffer+buffer_tracker,1,0);
 		if (readvalue == 1) {
 			buffer_tracker++;
@@ -298,6 +286,7 @@ int headerDigitCount(int c_s) {
 			buffer[buffer_tracker] = '\0';
 		}
 	}
+	printf("header dig %d\n",atoi(buffer));
 	return atoi(buffer);
 }
 int parse_line(char *line) {

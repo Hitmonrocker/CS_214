@@ -128,6 +128,25 @@ void* newfile(void* pathin) {
 	size = filesize/300;
 	records = alloc(size*sizeof(record*));
 
+	// open a socket and connect
+	int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	if(sockfd < 0) {
+		puts("Couldn't open a socket");
+		exit(-1);
+	}
+	if (connect(sockfd,(struct sockaddr *) &server_addr,sizeof(server_addr)) < 0){
+    	puts("Couldn't connect to server");
+    	exit(-1);
+	}
+	char buf[20];
+	fd_set socks;
+	FD_ZERO(&socks);
+	FD_SET(sockfd,&socks);
+	write(sockfd, "record", strlen("record"));
+	select(sockfd+1, &socks, NULL, NULL, NULL);
+	buf[read(sockfd, buf, 20)] = 0;
+	printf("buf '%s'\n", buf);
+
 	char* raw = NULL;
 	// get the first record
 	n = 0;
@@ -136,127 +155,24 @@ void* newfile(void* pathin) {
 	while (raw && raw[0]) {
 		// trim whitespace
 		raw = trim(raw);
-		// allocate space for the new record
-		record* r = alloc(sizeof(record));
-		// temp vars
-		char* save = raw;
-		char* temp = NULL;
-		// allocate space for and store record entries
-		get_str(&raw, &r->color);
-		get_str(&raw, &r->director_name);
-		temp = strsep(&raw, ",");
-		temp = trim(temp);
-		if (EOF == sscanf(temp, "%hu", &r->num_critic_for_reviews)) {
-			r->num_critic_for_reviews = 0;
-		}
-		temp = strsep(&raw, ",");
-		temp = trim(temp);
-		if (EOF == sscanf(temp, "%hu", &r->duration)) {
-			r->duration = 0;
-		}
-		temp = strsep(&raw, ",");
-		temp = trim(temp);
-		if (EOF == sscanf(temp, "%hu", &r->director_facebook_likes)) {
-			r->director_facebook_likes = 0;
-		}
-		temp = strsep(&raw, ",");
-		temp = trim(temp);
-		if (EOF == sscanf(temp, "%hu", &r->actor_3_facebook_likes)) {
-			r->actor_3_facebook_likes = 0;
-		}
-		get_str(&raw, &r->actor_2_name);
-		temp = strsep(&raw, ",");
-		temp = trim(temp);
-		if (EOF == sscanf(temp, "%u", &r->actor_1_facebook_likes)) {
-			r->actor_1_facebook_likes = 0;
-		}
-		temp = strsep(&raw, ",");
-		temp = trim(temp);
-		if (EOF == sscanf(temp, "%u", &r->gross)) {
-			r->gross = 0;
-		}
-		get_str(&raw, &r->genres);
-		get_str(&raw, &r->actor_1_name);
-		// decide whether to tokenize movie name on comma or quotation
-		if (raw[0] == '"') {
-			++raw;
-			temp = strsep(&raw, "\"");
-			temp = trim(temp);
-			sscanf(temp, "%m[^\"]", &r->movie_title);
-		} else {
-			get_str(&raw, &r->movie_title);
-		}
-		temp = strsep(&raw, ",");
-		temp = trim(temp);
-		if (EOF == sscanf(temp, "%u", &r->num_voted_users)) {
-			r->num_voted_users = 0;
-		}
-		temp = strsep(&raw, ",");
-		temp = trim(temp);
-		if (EOF == sscanf(temp, "%u", &r->cast_total_facebook_likes)) {
-			r->cast_total_facebook_likes = 0;
-		}
-		get_str(&raw, &r->actor_3_name);
-		temp = strsep(&raw, ",");
-		temp = trim(temp);
-		if (EOF == sscanf(temp, "%hhu", &r->facenumber_in_poster)) {
-			r->facenumber_in_poster = 0;
-		}
-		get_str(&raw, &r->plot_keywords);
-		get_str(&raw, &r->movie_imdb_link);
-		temp = strsep(&raw, ",");
-		temp = trim(temp);
-		if (EOF == sscanf(temp, "%hu", &r->num_user_for_reviews)) {
-			r->num_user_for_reviews = 0;
-		}
-		get_str(&raw, &r->language);
-		get_str(&raw, &r->country);
-		get_str(&raw, &r->content_rating);
-		temp = strsep(&raw, ",");
-		temp = trim(temp);
-		if (EOF == sscanf(temp, "%lu", &r->budget)) {
-			r->budget = 0;
-		}
-		temp = strsep(&raw, ",");
-		temp = trim(temp);
-		if (EOF == sscanf(temp, "%hu", &r->title_year)) {
-			r->title_year = 0;
-		}
-		temp = strsep(&raw, ",");
-		temp = trim(temp);
-		if (EOF == sscanf(temp, "%u", &r->actor_2_facebook_likes)) {
-			r->actor_2_facebook_likes = 0;
-		}
-		temp = strsep(&raw, ",");
-		temp = trim(temp);
-		if (EOF == sscanf(temp, "%f", &r->imdb_score)) {
-			r->imdb_score = 0;
-		}
-		temp = strsep(&raw, ",");
-		temp = trim(temp);
-		if (EOF == sscanf(temp, "%f", &r->aspect_ratio)) {
-			r->aspect_ratio = 0;
-		}
-		temp = strsep(&raw, ",");
-		temp = trim(temp);
-		if (EOF == sscanf(temp, "%u", &r->movie_facebook_likes)) {
-			r->movie_facebook_likes = 0;
-		}
-		// open a socket and connect
-		int sockfd = socket(AF_INET, SOCK_STREAM, 0);
-		if(sockfd < 0) {
-			puts("Couldn't open a socket");
-			exit(-1);
-		}
-		if (connect(sockfd,(struct sockaddr *) &server_addr,sizeof(server_addr)) < 0){
-        	puts("Couldn't connect to server");
-        	exit(-1);
-		}
-		close(sockfd);
+		size_t rawlen = strlen(raw);
+		char len_str[10];
+		sprintf(len_str, "%lu", rawlen);
+		char len_len_str[10];
+		sprintf(len_len_str, "%lu", strlen(len_str));
+
+		char* sendbuf = malloc(strlen(raw)+strlen(len_str)+3);
+		sprintf(sendbuf, "%lu@%s%s",strlen(len_str), len_str, raw);
+		//puts(sendbuf);
+
+		write(sockfd, sendbuf, strlen(sendbuf));
+		select(sockfd+1, &socks, NULL, NULL, NULL);
+		puts("reading");
+		read(sockfd, buf, 20);
+		puts("read");
+		//puts(buf);
 	
 		// do some housekeeping to prepare for the next line
-		records[current++] = r;
-
 		if (current >= size) {
 			size += 100;
 			records = realloc(records, size*sizeof(record*));
@@ -267,7 +183,6 @@ void* newfile(void* pathin) {
 		}
 
 		//get next line
-		free(save);
 		raw = NULL;
 		n = 0;
 		if (getline(&raw, &n, csv_in) < 0) {
@@ -275,6 +190,9 @@ void* newfile(void* pathin) {
 			break;
 		}
 	}
+	write(sockfd, "0@", strlen("0@"));
+	read(sockfd, buf, 20);
+	close(sockfd);
 
 	pthread_mutex_lock(&mut);
 	size_t old_size = size_m;
