@@ -176,14 +176,14 @@ void *client_run (void *client) {
 			quickSort(records, 0, ctotal, sF);
 			char* n = "\n";
 			//print the sorted result to the file
-			char buffer[4];
+			char buffer[8];
 			strcpy(filename, "file");
 			sprintf(buffer, "%d", sF);
 			strcat(filename, buffer);
+			strcat(filename, ".csv");
 			//prints and closes the file desc
-			FILE *nf;
-			nf = fopen(filename, "w+");
-			if (nf == 0) {
+			FILE *nf = fopen(filename, "w+");
+			if (nf == NULL) {
 				printf("Error creating file for storing sorted results!");
 			}
 			strcpy(fnames[fcount].name, filename);
@@ -229,7 +229,6 @@ void *client_run (void *client) {
 						}
 						send(client_socket,message,strlen(message),0);
 					}
-					fclose(reader);
 				}
 				fclose(reader);
 			} else {
@@ -602,7 +601,6 @@ void print2file(FILE *nf, struct mData records[], int size) {
 		//printf("\n");
 
 	}
-	fclose(nf);
 }
 int getHeaderCount(int s) {
 	int digitCount = 0;
