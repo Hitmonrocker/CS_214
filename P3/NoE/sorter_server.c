@@ -89,7 +89,6 @@ int main() {
 	char* ack = "We got you";
 	struct sockaddr_in* ipv4;
 	while (1) {
-
 		client_socket = accept(server_socket,(struct sockaddr*) &client_address,&client_addr_len);
 		ipv4 = (struct sockaddr_in*)&client_address;
 		struct in_addr ipAddr = ipv4->sin_addr;
@@ -114,14 +113,11 @@ int main() {
 		}*/
 	}
 	return 0;
-
-
-
 }
+
 //--------------------------------------------------
-
-
 void *client_run (void *client) {
+	puts("new socket");
 	struct client_info * client_inf = (struct client_info*) client;
 	int client_socket = client_inf->socketnum;
 	fd_set socks;
@@ -166,7 +162,8 @@ void *client_run (void *client) {
 				}
 			}
 		} else if (!strcmp(buffer,"sort")) {
-			puts("sort");
+			//send message that received sort request
+			send(client_socket, sorts, strlen(sorts), 0);
 			//get the sorting field from client ; receive an int if possible
 			char *sF_buffer = (char*) malloc(sizeof(char)*4);
 			int receive_sF = recv(client_socket, sF_buffer, 4, 0);
@@ -184,15 +181,14 @@ void *client_run (void *client) {
 			//print the sorted result to the file
 			char buffer[4];
 			strcpy(filename, "file");
-			printf("%s\n", filename);
 			sprintf(buffer, "%d", sF);
 			strcat(filename, buffer);
 			printf("New filename: %s\n", filename);
 			//prints and closes the file desc
 			FILE *nf;
 			nf = fopen(filename, "w+");
-			if (nf != 0) {
-				printf("Error creating file for storing sorted results!\n");
+			if (nf == 0) {
+				printf("Error creating file for storing sorted results! %d\n", nf);
 			}
 			strcpy(fnames[fcount].name, filename);
 			fcount++;
@@ -251,8 +247,6 @@ void *client_run (void *client) {
 			exit = 1;
 		}
 	}
-	//Print(records, ctotal);
-	close(client_socket);
 	return 0;
 }
 void getRecord(char* record,int c_s,int length, fd_set socks) {

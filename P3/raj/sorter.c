@@ -86,8 +86,8 @@ void check_dir(char* path) {
 	}
 }
 
-int read_sock(int sockfd, char* buf, int len, int flags, fd_set socks) {
-	select(sockfd+1, &socks, NULL, NULL, NULL);
+int read_sock(int sockfd, char* buf, int len, int flags, fd_set *socks) {
+	select(sockfd+1, socks, NULL, NULL, NULL);
 	return recv(sockfd, buf, len, flags);
 }
 
@@ -148,7 +148,7 @@ void* newfile(void* pathin) {
 	FD_ZERO(&socks);
 	FD_SET(sockfd,&socks);
 	write(sockfd, "record", strlen("record"));
-	buf[read_sock(sockfd, buf, 20, 0, socks)] = 0;
+	buf[read_sock(sockfd, buf, 20, 0, &socks)] = 0;
 	printf("buf '%s'\n", buf);
 
 	char* raw = NULL;
@@ -170,7 +170,7 @@ void* newfile(void* pathin) {
 		//puts(sendbuf);
 
 		write(sockfd, sendbuf, strlen(sendbuf));
-		read_sock(sockfd, buf, 20, 0, socks);
+		read_sock(sockfd, buf, 20, 0, &socks);
 		//puts(buf);
 	
 		// do some housekeeping to prepare for the next line
@@ -192,7 +192,7 @@ void* newfile(void* pathin) {
 	}
 	puts("closing socket");
 	write(sockfd, "0@", strlen("0@"));
-	read_sock(sockfd, buf, 20, 0, socks);
+	read_sock(sockfd, buf, 20, 0, &socks);
 	close(sockfd);
 
 	pthread_mutex_lock(&mut);
@@ -353,21 +353,42 @@ int main(int argc, char** argv) {
 
 	bool done = false;
 	while (!done) {
-		size_t j = 0;
 		done = true;
-		while (j < TPOOL_SIZE) {
+		for (size_t j = 0; j < TPOOL_SIZE; ++j) {
 			pthread_mutex_lock(&tpool_mut);
 			if (tpool[j]) {
 				done = false;
 				pthread_join(tpool[j], NULL);
 				tpool[j] = 0;
 			}
-			++j;
 			pthread_mutex_unlock(&tpool_mut);
 		}
 	}
 
 	//retrieve sorted files
+	// open a socket and connect
+	int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	if(sockfd < 0) {
+		puts("Couldn't open a socket");
+		exit(-1);
+	}
+	if (connect(sockfd,(struct sockaddr *) &server_addr,sizeof(server_addr)) < 0){
+    	puts("Couldn't connect to server");
+    	exit(-1);
+	}
+	char buf[20];
+	fd_set socks;
+	FD_ZERO(&socks);
+	FD_SET(sockfd,&socks);
+	write(sockfd, "sort", strlen("sort"));
+	read_sock(sockfd, buf, 20, 0, &socks);
+	for(int i = 0; i < 28; ++i){
+		if(!strcmp(key, columns[i])) {
+			sprintf(buf,"%d",i);
+			write(sockfd, buf, strlen(buf));
+			read_sock(sockfd, buf, 20, 0, &socks);
+		}
+	}
 
 	// save the sorted csv
 	char* csv_out_path = alloc(PATH_MAX);
