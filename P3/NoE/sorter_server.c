@@ -134,7 +134,7 @@ void *client_run (void *client) {
 	while (exit ==  0) {
 		select(client_socket+1, &socks, NULL, NULL, NULL);
 		buffer[recv(client_socket,buffer,6,0)] = '\0';
-		printf("buffer '%s'\n", buffer);
+		
 		if (!strcmp(buffer,"record")) {
 			condition = 0;
 			while (condition == 0) {
@@ -185,6 +185,7 @@ void *client_run (void *client) {
 			strcat(filename, ".csv");
 			printf("New filename: %s\n", filename);
 			//prints and closes the file desc
+			pthread_mutex_lock(&lock);
 			FILE *nf;
 			nf = fopen(filename, "wb+");
 			if (nf != 0) {
@@ -192,30 +193,21 @@ void *client_run (void *client) {
 			}
 			strcpy(fnames[fcount].name, filename);
 			fcount++;
-			pthread_mutex_lock(&lock);
+			
 			print2file(nf, records, ctotal);
 			fprintf(nf,"%s",n);
-			pthread_mutex_unlock(&lock);
 			fclose(nf);
+			pthread_mutex_unlock(&lock);
 		} else if (!strcmp(buffer,"return")) {
 			puts("return");
-			char * buffer = malloc(sizeof(char)*1000);
-			if (!buffer) {
-				return 0 ;
-			}
 			send(client_socket, ret, strlen(ret), 0);
 			FILE *reader;
 			reader = fopen(filename,"r");
 			if (reader) {
 				char * buffer = malloc(sizeof(char)*1000);
-				if (!buffer) {
-					return 0 ;
-				}
 				char* message;
 				size_t s = 999;
-				reader = fopen("test.csv","r");
-				if (reader) {
-					int size;
+				int size;
 					size = getline(&buffer,&s,reader) - 3;
 					char buff[9];
 					while (size > 0) {
@@ -236,13 +228,13 @@ void *client_run (void *client) {
 					}
 					fclose(reader);
 				}
-				fclose(reader);
-			} else {
-				printf("Error file DNE");
-
-			}
+				else
+				{
+					exit = 1;
+				}
+				
+			} 
 			exit = 1;
-		} 
 	}
 	
 	close(client_socket);
@@ -562,7 +554,7 @@ char* checkIf(char * p) {
 }
 void Print(struct mData records[], int size) {
 	int i;
-	for (i = 0; i < size; i++) {
+	for (i = 1; i <= size; i++) {
 		//printf(" Movie %s. \n",  records[i].mTitle);
 
 		printf(
@@ -585,7 +577,7 @@ void Print(struct mData records[], int size) {
 void print2file(FILE *nf, struct mData records[], int size) {
 
 	int i;
-	for (i = 1; i <= size; i++) {
+	for (i = 0; i < size; i++) {
 		//printf(" Movie %s. \n",  records[i].mTitle);
 
 		fprintf(nf,
