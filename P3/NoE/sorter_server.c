@@ -32,6 +32,7 @@ int getHeaderCount(int s);
 void getRecord(char* record, int c_s, int length, fd_set);
 int byteCount(int c_s, int digitCount, fd_set);
 void* client_run(void* client);
+char* trim(char* str);
 
 //parsing functions
 char* checkIf(char * p);
@@ -209,21 +210,29 @@ void *client_run (void *client) {
 				char* message;
 				size_t s = 999;
 				int size;
-				size = getline(&buffer,&s,reader) - 3;
-				char buff[9];
+				// skip header
+				getline(&buffer,&s,reader);
+				getline(&buffer,&s,reader);
+				buffer = trim(buffer);
+				size = strlen(buffer);
+				puts(buffer);
 				while (size > 0) {
-					size = getline(&buffer,&s,reader) - 3;
 					int digit = getHeaderCount(size);
 					if (digit > 0) {
-						message = (char*)malloc(sizeof(char)*(size+digit-2));
-						sprintf(buff,"%d",digit);
-						strcpy(message,buff);
-						strcat(message,"@");
-						sprintf(buff,"%d",size-3);
-						strcat(message,buff);
-						strcat(message,buffer);
+						size_t rawlen = strlen(buffer);
+						char len_str[10];
+						sprintf(len_str, "%lu", rawlen);
+						char len_len_str[10];
+						sprintf(len_len_str, "%lu", strlen(len_str));
+
+						message = malloc(strlen(buffer)+strlen(len_str)+3);
+						sprintf(message, "%lu@%s%s",strlen(len_str), len_str, buffer);
+
+						getline(&buffer,&s,reader);
+						buffer = trim(buffer);
+						size = strlen(buffer);
 					} else {
-						message ="0@";
+						message = "0@";
 					}
 					send(client_socket,message,strlen(message),0);
 				}
@@ -238,6 +247,40 @@ void *client_run (void *client) {
 		}
 	}
 	return 0;
+}
+
+//adapted from stackoverflow
+char* trim(char* str) {
+	size_t len = 0;
+	char *frontp = str;
+	char *endp = NULL;
+
+	//some error checking
+	if (str == NULL) {return NULL;}
+	if (str[0] == '\0') {return str;}
+
+	len = strlen(str);
+	endp = str+len;
+
+	// trim the front
+	while (isspace((unsigned char) *frontp)) {++frontp;}
+	// trim the end
+	if (endp != frontp) {
+		while (isspace((unsigned char) *(--endp)) && endp != frontp) {}
+	}
+
+	// error checking
+	if (str+len-1 != endp)
+		*(endp+1) = '\0';
+	else if (frontp != str && endp == frontp)
+		*str = '\0';
+
+	endp = str;
+	if (frontp != str) {
+		while (*frontp) { *endp++ = *frontp++; }
+		*endp = '\0';
+	}
+	return str;
 }
 
 void getRecord(char* record,int c_s,int length, fd_set socks) {

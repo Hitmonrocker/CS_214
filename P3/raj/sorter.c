@@ -21,9 +21,9 @@
 void get_str(char**, char**);
 
 char* key = NULL;
-pthread_mutex_t mut;
-record** records_m = NULL;
-size_t size_m = 0;
+record** records = NULL;
+size_t size = 1000;
+size_t records_i = 0;
 
 pthread_mutex_t tpool_mut;
 pthread_t tpool[TPOOL_SIZE];
@@ -91,9 +91,6 @@ int read_sock(int sockfd, char* buf, int len, int flags, fd_set *socks) {
 
 void* newfile(void* pathin) {
 	char* path = (char*)pathin;
-	record** records;
-	int size = 0;
-	int current = 0;
 
 	// start processing a file
 	// check file extensions
@@ -101,9 +98,6 @@ void* newfile(void* pathin) {
 	if (strstr(path, "-sorted-")) return 0;
 	FILE* csv_in = fopen(path, "r");
 	free(pathin);
-	fseek(csv_in, 0L, SEEK_END);
-	size_t filesize = ftell(csv_in);
-	rewind(csv_in);
 	// get column names
 	char* headers = NULL;
 	size_t n = 0;
@@ -118,11 +112,6 @@ void* newfile(void* pathin) {
 	if (commas != 27) return 0;
 
 	free(headers);
-
-	// the file is valid, continue with processing
-	// allocate space for some records to start
-	size = filesize/300;
-	records = alloc(size*sizeof(record*));
 
 	// open a socket and connect
 	int sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -156,7 +145,7 @@ void* newfile(void* pathin) {
 		char len_len_str[10];
 		sprintf(len_len_str, "%lu", strlen(len_str));
 
-		char* sendbuf = malloc(strlen(raw)+strlen(len_str)+3);
+		char* sendbuf = alloc(strlen(raw)+strlen(len_str)+3);
 		sprintf(sendbuf, "%lu@%s%s",strlen(len_str), len_str, raw);
 		//puts(sendbuf);
 
@@ -164,15 +153,6 @@ void* newfile(void* pathin) {
 		read_sock(sockfd, buf, 20, 0, &socks);
 		//puts(buf);
 
-		// do some housekeeping to prepare for the next line
-		if (current >= size) {
-			size += 100;
-			records = realloc(records, size*sizeof(record*));
-			if (!records) {
-				puts("Couldn't allocate memory.");
-				exit(-1);
-			}
-		}
 		//get next line
 		raw = NULL;
 		n = 0;
@@ -185,18 +165,6 @@ void* newfile(void* pathin) {
 	write(sockfd, "0@", strlen("0@"));
 	read_sock(sockfd, buf, 20, 0, &socks);
 	close(sockfd);
-
-	pthread_mutex_lock(&mut);
-	size_t old_size = size_m;
-	size_m += current;
-	records_m = realloc(records_m, size_m*sizeof(record*));
-	if (!records_m) {
-		puts("Couldn't allocate memory.");
-		exit(-1);
-	}
-	memcpy(&records_m[old_size], records, current*sizeof(record*));
-	pthread_mutex_unlock(&mut);
-	free(records);
 	return 0;
 }
 
@@ -249,7 +217,7 @@ void getRecord(char* record,int c_s,int length, fd_set *socks) {
 }
 
 int byteCount(int c_s,int digitCount, fd_set *socks) {
-	char* buffer = (char*) malloc(sizeof(char)*digitCount);
+	char* buffer = (char*) alloc(sizeof(char)*digitCount);
 	read_sock(c_s, buffer, digitCount, MSG_WAITALL, socks);
 	printf("bc %d %s\n", atoi(buffer), buffer);
 	return atoi(buffer);
@@ -257,7 +225,7 @@ int byteCount(int c_s,int digitCount, fd_set *socks) {
 
 int headerDigitCount(int c_s, fd_set *socks) {
 	// read header digit count
-	char* buffer = (char*) malloc(sizeof(char)*9);
+	char* buffer = (char*) alloc(sizeof(char)*9);
 	int exit_condition = 1;
 	int buffer_tracker = 0;
 	int readvalue;
@@ -273,6 +241,116 @@ int headerDigitCount(int c_s, fd_set *socks) {
 	}
 	printf("hdc %d %s\n", atoi(buffer), buffer);
 	return atoi(buffer);
+}
+
+record* parse(char* raw) {
+	puts("1");
+	record* r = alloc(sizeof(record));
+	// temp vars
+	char* temp = NULL;
+	// allocate space for and store record entries
+	get_str(&raw, &r->color);
+	get_str(&raw, &r->director_name);
+	temp = strsep(&raw, ",");
+	temp = trim(temp);
+	if (EOF == sscanf(temp, "%hu", &r->num_critic_for_reviews)) {
+		r->num_critic_for_reviews = 0;
+	}
+	temp = strsep(&raw, ",");
+	temp = trim(temp);
+	if (EOF == sscanf(temp, "%hu", &r->duration)) {
+		r->duration = 0;
+	}
+	temp = strsep(&raw, ",");
+	temp = trim(temp);
+	if (EOF == sscanf(temp, "%hu", &r->director_facebook_likes)) {
+		r->director_facebook_likes = 0;
+	}
+	temp = strsep(&raw, ",");
+	temp = trim(temp);
+	if (EOF == sscanf(temp, "%hu", &r->actor_3_facebook_likes)) {
+		r->actor_3_facebook_likes = 0;
+	}
+	get_str(&raw, &r->actor_2_name);
+	temp = strsep(&raw, ",");
+	temp = trim(temp);
+	if (EOF == sscanf(temp, "%u", &r->actor_1_facebook_likes)) {
+		r->actor_1_facebook_likes = 0;
+	}
+	temp = strsep(&raw, ",");
+	temp = trim(temp);
+	if (EOF == sscanf(temp, "%u", &r->gross)) {
+		r->gross = 0;
+	}
+	get_str(&raw, &r->genres);
+	get_str(&raw, &r->actor_1_name);
+	// decide whether to tokenize movie name on comma or quotation
+	if (raw[0] == '"') {
+		++raw;
+		temp = strsep(&raw, "\"");
+		temp = trim(temp);
+		sscanf(temp, "%m[^\"]", &r->movie_title);
+	} else {
+		get_str(&raw, &r->movie_title);
+	}
+	temp = strsep(&raw, ",");
+	temp = trim(temp);
+	if (EOF == sscanf(temp, "%u", &r->num_voted_users)) {
+		r->num_voted_users = 0;
+	}
+	temp = strsep(&raw, ",");
+	temp = trim(temp);
+	if (EOF == sscanf(temp, "%u", &r->cast_total_facebook_likes)) {
+		r->cast_total_facebook_likes = 0;
+	}
+	get_str(&raw, &r->actor_3_name);
+	temp = strsep(&raw, ",");
+	temp = trim(temp);
+	if (EOF == sscanf(temp, "%hhu", &r->facenumber_in_poster)) {
+		r->facenumber_in_poster = 0;
+	}
+	get_str(&raw, &r->plot_keywords);
+	puts("2");
+	get_str(&raw, &r->movie_imdb_link);
+	temp = strsep(&raw, ",");
+	temp = trim(temp);
+	if (EOF == sscanf(temp, "%hu", &r->num_user_for_reviews)) {
+		r->num_user_for_reviews = 0;
+	}
+	get_str(&raw, &r->language);
+	get_str(&raw, &r->country);
+	get_str(&raw, &r->content_rating);
+	temp = strsep(&raw, ",");
+	temp = trim(temp);
+	if (EOF == sscanf(temp, "%lu", &r->budget)) {
+		r->budget = 0;
+	}
+	temp = strsep(&raw, ",");
+	temp = trim(temp);
+	if (EOF == sscanf(temp, "%hu", &r->title_year)) {
+		r->title_year = 0;
+	}
+	temp = strsep(&raw, ",");
+	temp = trim(temp);
+	if (EOF == sscanf(temp, "%u", &r->actor_2_facebook_likes)) {
+		r->actor_2_facebook_likes = 0;
+	}
+	temp = strsep(&raw, ",");
+	temp = trim(temp);
+	if (EOF == sscanf(temp, "%f", &r->imdb_score)) {
+		r->imdb_score = 0;
+	}
+	temp = strsep(&raw, ",");
+	temp = trim(temp);
+	if (EOF == sscanf(temp, "%f", &r->aspect_ratio)) {
+		r->aspect_ratio = 0;
+	}
+	temp = strsep(&raw, ",");
+	temp = trim(temp);
+	if (EOF == sscanf(temp, "%u", &r->movie_facebook_likes)) {
+		r->movie_facebook_likes = 0;
+	}
+	return r;
 }
 
 int main(int argc, char** argv) {
@@ -367,7 +445,6 @@ int main(int argc, char** argv) {
 	bcopy((char *)server->h_addr, (char *)&server_addr.sin_addr.s_addr, server->h_length);
 	server_addr.sin_port = htons(port);
 
-	pthread_mutex_init(&mut, NULL);
 	pthread_mutex_init(&tpool_mut, NULL);
 	newdir(cur_path);
 
@@ -413,8 +490,8 @@ int main(int argc, char** argv) {
 	write(sockfd, "return", strlen("return"));
 	read_sock(sockfd, buf, 20, 0, &socks);
 	int condition = 0;
+	records = alloc(sizeof(record*)*size);
 	while (condition == 0) {
-		puts("new rec");
 		int headerLength;
 		int messageLength;
 		char* tempRec;
@@ -423,11 +500,20 @@ int main(int argc, char** argv) {
 			condition = -1;
 		} else {
 			messageLength = byteCount(sockfd,headerLength, &socks);
-			tempRec = malloc(sizeof(char)*messageLength);
+			tempRec = alloc(sizeof(char)*messageLength);
 			getRecord(tempRec,sockfd,messageLength, &socks);
-			puts(tempRec);
-			puts("");
-			// parse the line
+
+		puts("old");
+			records[records_i] = parse(tempRec);
+		puts("new");
+			if (records_i >= size) {
+				size += 100;
+				records = realloc(records, size*sizeof(record*));
+				if (!records) {
+					puts("Couldn't reallocate memory.");
+					exit(-1);
+				}
+			}
 		}
 	}
 
@@ -435,8 +521,8 @@ int main(int argc, char** argv) {
 	char* csv_out_path = alloc(PATH_MAX);
 	sprintf(csv_out_path, "%s/AllFiles-sorted-%s.csv", out_path, key);
 	FILE* csv_out = fopen(csv_out_path, "w");
-	for (size_t i = 0; i<size_m; ++i) {
-		print_record(csv_out, records_m[i]);
+	for (size_t i = 0; i<records_i; ++i) {
+		print_record(csv_out, records[i]);
 	}
 	fclose(csv_out);
 	return 0;
