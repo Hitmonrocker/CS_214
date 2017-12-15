@@ -112,6 +112,39 @@ int main() {
 }
 //--------------------------------------------------
 
+//adapted from stackoverflow
+char* trim(char* str) {
+	size_t len = 0;
+	char *frontp = str;
+	char *endp = NULL;
+
+	//some error checking
+	if (str == NULL) {return NULL;}
+	if (str[0] == '\0') {return str;}
+
+	len = strlen(str);
+	endp = str+len;
+
+	// trim the front
+	while (isspace((unsigned char) *frontp)) {++frontp;}
+	// trim the end
+	if (endp != frontp) {
+		while (isspace((unsigned char) *(--endp)) && endp != frontp) {}
+	}
+
+	// error checking
+	if (str+len-1 != endp)
+		*(endp+1) = '\0';
+	else if (frontp != str && endp == frontp)
+		*str = '\0';
+
+	endp = str;
+	if (frontp != str) {
+		while (*frontp) { *endp++ = *frontp++; }
+		*endp = '\0';
+	}
+	return str;
+}
 
 void *client_run (void *client) {
 	struct client_info * client_inf = (struct client_info*) client;
@@ -205,17 +238,20 @@ void *client_run (void *client) {
 			reader = fopen(filename,"r+");
 			if (reader != NULL) {
 				char * buffer = malloc(sizeof(char)*400);
+
 				char* message;
-				size_t s = 400;
-				size_t rawlen;
-				int leave = 0;
-				// skip headers
+				size_t s = 999;
+				int size;
+				// skip header
 				getline(&buffer,&s,reader);
 				getline(&buffer,&s,reader);
-				rawlen = strlen(buffer);
-				while (1) {
-					if (rawlen > 0) {
-						rawlen = strlen(buffer);
+				buffer = trim(buffer);
+				size = strlen(buffer);
+				puts(buffer);
+				while (size > 0) {
+					int digit = getHeaderCount(size);
+					if (digit > 0) {
+						size_t rawlen = strlen(buffer);
 						char len_str[10];
 						sprintf(len_str, "%lu", rawlen);
 						char len_len_str[10];
@@ -223,24 +259,25 @@ void *client_run (void *client) {
 
 						message = malloc(strlen(buffer)+strlen(len_str)+3);
 						sprintf(message, "%lu@%s%s",strlen(len_str), len_str, buffer);
+
+						getline(&buffer,&s,reader);
+						buffer = trim(buffer);
+						size = strlen(buffer);
 					} else {
-						strcpy(message,"0@");
+						message = "0@";
 					}
-					printf("%s\n",message);
 					send(client_socket,message,strlen(message),0);
-					getline(&buffer,&s,reader);
 				}
 				fclose(reader);
 			} else {
-				puts("fuk me");
-				exit = 1;
+				printf("Error file DNE");
 			}
+			exit = 1;
 		} else {
+			puts(buffer);
 			exit = 1;
 		}
 	}
-	printf("done\n" );
-	close(client_socket);
 	return 0;
 }
 
