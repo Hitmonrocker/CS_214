@@ -209,7 +209,7 @@ void *client_run (void *client) {
 				}
 				char* message;
 				size_t s = 999;
-				int size;
+				size_t size;
 				// skip header
 				getline(&buffer,&s,reader);
 				getline(&buffer,&s,reader);
@@ -217,11 +217,9 @@ void *client_run (void *client) {
 				size = strlen(buffer);
 				puts(buffer);
 				while (size > 0) {
-					int digit = getHeaderCount(size);
-					if (digit > 0) {
-						size_t rawlen = strlen(buffer);
+					if (size > 0) {
 						char len_str[10];
-						sprintf(len_str, "%lu", rawlen);
+						sprintf(len_str, "%lu", size);
 						char len_len_str[10];
 						sprintf(len_len_str, "%lu", strlen(len_str));
 
@@ -232,6 +230,7 @@ void *client_run (void *client) {
 						buffer = trim(buffer);
 						size = strlen(buffer);
 					} else {
+						puts("done");
 						message = "0@";
 					}
 					send(client_socket,message,strlen(message),0);

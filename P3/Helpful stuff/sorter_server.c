@@ -42,7 +42,7 @@ int parse_line(char * line);
 
 //-----------------------------------------------------
 int main() {
-	int SERVER_PORT = 8877;
+	int SERVER_PORT = 8876;
 	int server_socket = socket(AF_INET, SOCK_STREAM, 0);
 
 	if (server_socket == 0) {
@@ -97,8 +97,8 @@ int main() {
 		ci[i].socketnum = client_socket;
 		send(client_socket,ack,strlen(ack),0);
 		tc = pthread_create(&thread[i],NULL,client_run,&ci[i]);
-		
-		
+
+
 		/*printf("%s\n",str);
 		close(client_socket);
 		if (i>=NUM) {
@@ -150,7 +150,6 @@ void *client_run (void *client) {
 					messageLength = byteCount(client_socket,headerLength, socks);
 					tempRec = malloc(sizeof(char)*messageLength);
 					getRecord(tempRec,client_socket,messageLength, socks);
-					puts("got record");
 					send(client_socket,recieved,strlen(recieved),0);
 					//add parse function here
 					if (!parse_line(tempRec)) {
@@ -185,7 +184,7 @@ void *client_run (void *client) {
 			strcat(filename, ".csv");
 			printf("New filename: %s\n", filename);
 			//prints and closes the file desc
-			
+
 			FILE *nf;
 			nf = fopen(filename, "w+");
 			if (nf == NULL) {
@@ -198,7 +197,7 @@ void *client_run (void *client) {
 			fprintf(nf,"%s",n);
 			pthread_mutex_unlock(&lock);
 			fclose(nf);
-			
+
 		} else if (!strcmp(buffer,"return")) {
 			puts("return");
 			send(client_socket, ret, strlen(ret), 0);
@@ -208,49 +207,43 @@ void *client_run (void *client) {
 				char * buffer = malloc(sizeof(char)*400);
 				char* message;
 				size_t s = 400;
-				int size;
+				size_t rawlen;
 				int leave = 0;
-					size = getline(&buffer,&s,reader) - 3;
-					char buff[9];
-					while (size > 0) 
-					{
-						int digit = getHeaderCount(size);
-						if (digit > 0) {
-							message = (char*)malloc(sizeof(char)*(size+digit-2));
-							sprintf(buff,"%d",digit);
-							strcpy(message,buff);
-							strcat(message,"@");
-							sprintf(buff,"%d",size-3);
-							strcat(message,buff);
-							strcat(message,buffer);
-						} 
-						else {
-							strcpy(message,"0@");
-						}
-						printf("%s\n",message);
-						send(client_socket,message,size-3+digit+1,0);
-						size = getline(&buffer,&s,reader) - 3;
-					
+				// skip headers
+				getline(&buffer,&s,reader);
+				getline(&buffer,&s,reader);
+				rawlen = strlen(buffer);
+				while (1) {
+					if (rawlen > 0) {
+						rawlen = strlen(buffer);
+						char len_str[10];
+						sprintf(len_str, "%lu", rawlen);
+						char len_len_str[10];
+						sprintf(len_len_str, "%lu", strlen(len_str));
+
+						message = malloc(strlen(buffer)+strlen(len_str)+3);
+						sprintf(message, "%lu@%s%s",strlen(len_str), len_str, buffer);
+					} else {
+						strcpy(message,"0@");
 					}
-					fclose(reader);
+					printf("%s\n",message);
+					send(client_socket,message,strlen(message),0);
+					getline(&buffer,&s,reader);
 				}
-				else
-				{
-					puts("fuk me");
-					exit = 1;
-				}
-				
-			}
-			else
-			{
+				fclose(reader);
+			} else {
+				puts("fuk me");
 				exit = 1;
-			} 
+			}
+		} else {
+			exit = 1;
+		}
 	}
 	printf("done\n" );
 	close(client_socket);
 	return 0;
-
 }
+
 void getRecord(char* record,int c_s,int length, fd_set socks) {
 	select(c_s+1, &socks, NULL, NULL, NULL);
 	record[recv(c_s, record,length, MSG_WAITALL)] = 0;
@@ -282,6 +275,7 @@ int headerDigitCount(int c_s, fd_set socks) {
 	}
 	return atoi(buffer);
 }
+
 int parse_line(char *line) {
 
 	//char word;	// just a variable

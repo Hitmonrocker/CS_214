@@ -364,7 +364,7 @@ int main(int argc, char** argv) {
 	fd_set socks;
 	FD_ZERO(&socks);
 	FD_SET(sockfd,&socks);
-	write(sockfd, "sort", strlen("sort"));
+	write(sockfd, "sorter", strlen("sorter"));
 	read_sock(sockfd, buf, 20, 0, &socks);
 	for (int i = 0; i < 28; ++i) {
 		if (!strcmp(key, columns[i])) {
@@ -394,7 +394,9 @@ int main(int argc, char** argv) {
 			messageLength = byteCount(sockfd,headerLength, &socks);
 			tempRec = alloc(sizeof(char)*messageLength);
 			getRecord(tempRec,sockfd,messageLength, &socks);
-			fprintf(csv_out, tempRec);
+			puts(tempRec);
+			puts("");
+			fprintf(csv_out, "%s\n", tempRec);
 		}
 	}
 	fclose(csv_out);
@@ -457,42 +459,4 @@ char* trim(char* str) {
 		*endp = '\0';
 	}
 	return str;
-}
-
-// print a record in csv format
-void print_record(FILE* f, record *r) {
-	fprintf(f, "%s,%s,%hu,%hu,%hu,%hu,%s,%u,%u,%s,%s,",
-	        r->color,
-	        r->director_name,
-	        r->num_critic_for_reviews,
-	        r->duration,
-	        r->director_facebook_likes,
-	        r->actor_3_facebook_likes,
-	        r->actor_2_name,
-	        r->actor_1_facebook_likes,
-	        r->gross,
-	        r->genres,
-	        r->actor_1_name);
-	if (strchr(r->movie_title, ',')) {
-		fprintf(f, "\"%s\"", r->movie_title);
-	} else {
-		fprintf(f, r->movie_title);
-	}
-	fprintf(f, ",%u,%u,%s,%hhu,%s,%s,%hu,%s,%s,%s,%lu,%hu,%u,%f,%f,%u\n",
-	        r->num_voted_users,
-	        r->cast_total_facebook_likes,
-	        r->actor_3_name,
-	        r->facenumber_in_poster,
-	        r->plot_keywords,
-	        r->movie_imdb_link,
-	        r->num_user_for_reviews,
-	        r->language,
-	        r->country,
-	        r->content_rating,
-	        r->budget,
-	        r->title_year,
-	        r->actor_2_facebook_likes,
-	        r->imdb_score,
-	        r->aspect_ratio,
-	        r->movie_facebook_likes);
 }
