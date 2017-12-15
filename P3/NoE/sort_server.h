@@ -38,7 +38,6 @@ struct fileNames{
 };
 struct client_info{
 	int socketnum;
-	int index;
 };
 
 

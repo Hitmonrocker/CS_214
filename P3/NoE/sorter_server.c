@@ -134,7 +134,7 @@ void *client_run (void *client) {
 	while (exit ==  0) {
 		select(client_socket+1, &socks, NULL, NULL, NULL);
 		buffer[recv(client_socket,buffer,6,0)] = '\0';
-		
+		printf("%s/n",buffer);
 		if (!strcmp(buffer,"record")) {
 			condition = 0;
 			while (condition == 0) {
@@ -159,7 +159,7 @@ void *client_run (void *client) {
 				}
 
 			}
-			Print(records,ctotal);
+			//Print(records,ctotal);
 		} else if (!strcmp(buffer,"sorter")) {
 			puts("sorter");
 			//get the sorting field from client ; receive an int if possible
@@ -185,33 +185,34 @@ void *client_run (void *client) {
 			strcat(filename, ".csv");
 			printf("New filename: %s\n", filename);
 			//prints and closes the file desc
-			pthread_mutex_lock(&lock);
+			
 			FILE *nf;
-			nf = fopen(filename, "wb+");
+			nf = fopen(filename, "w+");
 			if (nf != 0) {
 				printf("Error creating file for storing sorted results!\n");
 			}
 			strcpy(fnames[fcount].name, filename);
 			fcount++;
-			
+			pthread_mutex_lock(&lock);
 			print2file(nf, records, ctotal);
 			fprintf(nf,"%s",n);
-			fclose(nf);
 			pthread_mutex_unlock(&lock);
+			fclose(nf);
+			
 		} else if (!strcmp(buffer,"return")) {
 			puts("return");
 			send(client_socket, ret, strlen(ret), 0);
 			FILE *reader;
-			reader = fopen(filename,"r");
+			reader = fopen(filename,"r+");
 			if (reader) {
-				char * buffer = malloc(sizeof(char)*1000);
+				char * buffer = malloc(sizeof(char)*400);
 				char* message;
-				size_t s = 999;
+				size_t s = 400;
 				int size;
 					size = getline(&buffer,&s,reader) - 3;
 					char buff[9];
-					while (size > 0) {
-						size = getline(&buffer,&s,reader) - 3;
+					while (size > 0) 
+					{
 						int digit = getHeaderCount(size);
 						if (digit > 0) {
 							message = (char*)malloc(sizeof(char)*(size+digit-2));
@@ -221,10 +222,13 @@ void *client_run (void *client) {
 							sprintf(buff,"%d",size-3);
 							strcat(message,buff);
 							strcat(message,buffer);
-						} else {
-							message ="0@";
+						} 
+						else {
+							strcpy(message,"0@");
 						}
+						printf("%s\n",message);
 						send(client_socket,message,strlen(message),0);
+						size = getline(&buffer,&s,reader) - 3;
 					}
 					fclose(reader);
 				}
@@ -234,7 +238,6 @@ void *client_run (void *client) {
 				}
 				
 			} 
-			exit = 1;
 	}
 	
 	close(client_socket);
@@ -577,7 +580,7 @@ void Print(struct mData records[], int size) {
 void print2file(FILE *nf, struct mData records[], int size) {
 
 	int i;
-	for (i = 0; i < size; i++) {
+	for (i = 1; i <= size; i++) {
 		//printf(" Movie %s. \n",  records[i].mTitle);
 
 		fprintf(nf,
