@@ -83,7 +83,6 @@ int main(int argc, char const *argv[]) {
 	int tc = 0;
 	char* ack = "We got you";
 	struct sockaddr_in* ipv4;
-	printf("Received connections from: ");
 	while (1 == 1) {
 
 		client_socket = accept(server_socket,(struct sockaddr*) &client_address,&client_addr_len);
@@ -91,7 +90,6 @@ int main(int argc, char const *argv[]) {
 		struct in_addr ipAddr = ipv4->sin_addr;
 		char str[INET_ADDRSTRLEN];
 		inet_ntop(AF_INET, &ipAddr,str,INET_ADDRSTRLEN);
-		printf("%s,", str);
 		if (client_socket == -1) {
 			printf("Problem creating connection to socket %s\n",strerror(errno));
 			exit(EXIT_FAILURE);
@@ -100,10 +98,11 @@ int main(int argc, char const *argv[]) {
 		send(client_socket,ack,strlen(ack),0);
 		tc = pthread_create(&thread[i],NULL,client_run,&ci[i]);
 
+
 		/*printf("%s\n",str);
 		close(client_socket);
 		if (i>=NUM) {
-		close(server_socket);
+			close(server_socket);
 		}*/
 	}
 	return 0;
@@ -258,10 +257,11 @@ void *client_run (void *client) {
 				}
 				message = "0@";
 				send(client_socket,message,strlen(message),0);
-				fclose(reader);
+				
 			} else {
 				printf("Error file DNE");
 			}
+			fclose(reader);
 			exit = 1;
 		} else {
 			puts(buffer);
