@@ -126,7 +126,6 @@ void* newfile(void* pathin) {
 	FD_SET(sockfd,&socks);
 	write(sockfd, "record", strlen("record"));
 	buf[read_sock(sockfd, buf, 20, 0, &socks)] = 0;
-	printf("buf '%s'\n", buf);
 
 	char* raw = NULL;
 	// get the first record
@@ -158,7 +157,6 @@ void* newfile(void* pathin) {
 			break;
 		}
 	}
-	puts("closing socket");
 	write(sockfd, "0@", strlen("0@"));
 	read_sock(sockfd, buf, 20, 0, &socks);
 	close(sockfd);
@@ -216,7 +214,6 @@ void getRecord(char* record,int c_s,int length, fd_set *socks) {
 int byteCount(int c_s,int digitCount, fd_set *socks) {
 	char* buffer = (char*) alloc(sizeof(char)*digitCount);
 	read_sock(c_s, buffer, digitCount, MSG_WAITALL, socks);
-	printf("bc %d %s\n", atoi(buffer), buffer);
 	return atoi(buffer);
 }
 
@@ -236,7 +233,6 @@ int headerDigitCount(int c_s, fd_set *socks) {
 			buffer[buffer_tracker] = '\0';
 		}
 	}
-	printf("hdc %d %s\n", atoi(buffer), buffer);
 	return atoi(buffer);
 }
 
@@ -395,7 +391,6 @@ int main(int argc, char** argv) {
 			tempRec = alloc(sizeof(char)*messageLength);
 			getRecord(tempRec,sockfd,messageLength, &socks);
 			fprintf(csv_out, "%s\n", tempRec);
-			printf("%s\n\n", tempRec);
 		}
 	}
 }
