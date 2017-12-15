@@ -99,11 +99,11 @@ int main(int argc, char const *argv[]) {
 		tc = pthread_create(&thread[i],NULL,client_run,&ci[i]);
 
 
-		/*printf("%s\n",str);
+		//printf("%s\n",str);
 		close(client_socket);
-		if (i>=NUM) {
-			close(server_socket);
-		}*/
+		//if (i>=NUM) {
+		//	close(server_socket);
+		//}
 	}
 	return 0;
 
