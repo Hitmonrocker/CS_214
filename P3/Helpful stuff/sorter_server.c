@@ -41,8 +41,9 @@ void print2file(FILE *nf, struct mData records[], int size);
 int parse_line(char * line);
 
 //-----------------------------------------------------
-int main() {
-	int SERVER_PORT = 8876;
+int main(int argc, char const *argv[])
+ {
+	int SERVER_PORT = atoi(argv[1]);
 	int server_socket = socket(AF_INET, SOCK_STREAM, 0);
 
 	if (server_socket == 0) {
@@ -167,6 +168,7 @@ void *client_run (void *client) {
 	while (exit ==  0) {
 		select(client_socket+1, &socks, NULL, NULL, NULL);
 		buffer[recv(client_socket,buffer,6,0)] = '\0';
+		printf("%s\n",buffer);
 		if (!strcmp(buffer,"record")) {
 			condition = 0;
 			while (condition == 0) {
@@ -192,6 +194,7 @@ void *client_run (void *client) {
 			}
 			//Print(records,ctotal);
 		} else if (!strcmp(buffer,"sorter")) {
+			puts("sorter");
 			//get the sorting field from client ; receive an int if possible
 			char *sF_buffer = (char*) malloc(sizeof(char)*4);
 			int receive_sF = recv(client_socket, sF_buffer, 4, 0);
@@ -209,9 +212,11 @@ void *client_run (void *client) {
 			//print the sorted result to the file
 			char buffer[8];
 			strcpy(filename, "file");
+			printf("%s\n", filename);
 			sprintf(buffer, "%d", sF);
 			strcat(filename, buffer);
 			strcat(filename, ".csv");
+			printf("New filename: %s\n", filename);
 			//prints and closes the file desc
 
 			FILE *nf;
@@ -226,7 +231,9 @@ void *client_run (void *client) {
 			fprintf(nf,"%s",n);
 			pthread_mutex_unlock(&lock);
 			fclose(nf);
+
 		} else if (!strcmp(buffer,"return")) {
+			puts("return");
 			send(client_socket, ret, strlen(ret), 0);
 			FILE *reader;
 			reader = fopen(filename,"r+");
@@ -241,10 +248,9 @@ void *client_run (void *client) {
 				getline(&buffer,&s,reader);
 				buffer = trim(buffer);
 				size = strlen(buffer);
+				puts(buffer);
 				while (size > 0) {
-					char* buf = calloc(10, 1);
-					sprintf(buf, "%d", size);
-					int digit = strlen(buf);
+					int digit = getHeaderCount(size);
 					if (digit > 0) {
 						size_t rawlen = strlen(buffer);
 						char len_str[10];
