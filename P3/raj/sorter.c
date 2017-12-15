@@ -21,9 +21,6 @@
 void get_str(char**, char**);
 
 char* key = NULL;
-record** records = NULL;
-size_t size = 1000;
-size_t records_i = 0;
 
 pthread_mutex_t tpool_mut;
 pthread_t tpool[TPOOL_SIZE];
@@ -243,116 +240,6 @@ int headerDigitCount(int c_s, fd_set *socks) {
 	return atoi(buffer);
 }
 
-record* parse(char* raw) {
-	puts("1");
-	record* r = alloc(sizeof(record));
-	// temp vars
-	char* temp = NULL;
-	// allocate space for and store record entries
-	get_str(&raw, &r->color);
-	get_str(&raw, &r->director_name);
-	temp = strsep(&raw, ",");
-	temp = trim(temp);
-	if (EOF == sscanf(temp, "%hu", &r->num_critic_for_reviews)) {
-		r->num_critic_for_reviews = 0;
-	}
-	temp = strsep(&raw, ",");
-	temp = trim(temp);
-	if (EOF == sscanf(temp, "%hu", &r->duration)) {
-		r->duration = 0;
-	}
-	temp = strsep(&raw, ",");
-	temp = trim(temp);
-	if (EOF == sscanf(temp, "%hu", &r->director_facebook_likes)) {
-		r->director_facebook_likes = 0;
-	}
-	temp = strsep(&raw, ",");
-	temp = trim(temp);
-	if (EOF == sscanf(temp, "%hu", &r->actor_3_facebook_likes)) {
-		r->actor_3_facebook_likes = 0;
-	}
-	get_str(&raw, &r->actor_2_name);
-	temp = strsep(&raw, ",");
-	temp = trim(temp);
-	if (EOF == sscanf(temp, "%u", &r->actor_1_facebook_likes)) {
-		r->actor_1_facebook_likes = 0;
-	}
-	temp = strsep(&raw, ",");
-	temp = trim(temp);
-	if (EOF == sscanf(temp, "%u", &r->gross)) {
-		r->gross = 0;
-	}
-	get_str(&raw, &r->genres);
-	get_str(&raw, &r->actor_1_name);
-	// decide whether to tokenize movie name on comma or quotation
-	if (raw[0] == '"') {
-		++raw;
-		temp = strsep(&raw, "\"");
-		temp = trim(temp);
-		sscanf(temp, "%m[^\"]", &r->movie_title);
-	} else {
-		get_str(&raw, &r->movie_title);
-	}
-	temp = strsep(&raw, ",");
-	temp = trim(temp);
-	if (EOF == sscanf(temp, "%u", &r->num_voted_users)) {
-		r->num_voted_users = 0;
-	}
-	temp = strsep(&raw, ",");
-	temp = trim(temp);
-	if (EOF == sscanf(temp, "%u", &r->cast_total_facebook_likes)) {
-		r->cast_total_facebook_likes = 0;
-	}
-	get_str(&raw, &r->actor_3_name);
-	temp = strsep(&raw, ",");
-	temp = trim(temp);
-	if (EOF == sscanf(temp, "%hhu", &r->facenumber_in_poster)) {
-		r->facenumber_in_poster = 0;
-	}
-	get_str(&raw, &r->plot_keywords);
-	puts("2");
-	get_str(&raw, &r->movie_imdb_link);
-	temp = strsep(&raw, ",");
-	temp = trim(temp);
-	if (EOF == sscanf(temp, "%hu", &r->num_user_for_reviews)) {
-		r->num_user_for_reviews = 0;
-	}
-	get_str(&raw, &r->language);
-	get_str(&raw, &r->country);
-	get_str(&raw, &r->content_rating);
-	temp = strsep(&raw, ",");
-	temp = trim(temp);
-	if (EOF == sscanf(temp, "%lu", &r->budget)) {
-		r->budget = 0;
-	}
-	temp = strsep(&raw, ",");
-	temp = trim(temp);
-	if (EOF == sscanf(temp, "%hu", &r->title_year)) {
-		r->title_year = 0;
-	}
-	temp = strsep(&raw, ",");
-	temp = trim(temp);
-	if (EOF == sscanf(temp, "%u", &r->actor_2_facebook_likes)) {
-		r->actor_2_facebook_likes = 0;
-	}
-	temp = strsep(&raw, ",");
-	temp = trim(temp);
-	if (EOF == sscanf(temp, "%f", &r->imdb_score)) {
-		r->imdb_score = 0;
-	}
-	temp = strsep(&raw, ",");
-	temp = trim(temp);
-	if (EOF == sscanf(temp, "%f", &r->aspect_ratio)) {
-		r->aspect_ratio = 0;
-	}
-	temp = strsep(&raw, ",");
-	temp = trim(temp);
-	if (EOF == sscanf(temp, "%u", &r->movie_facebook_likes)) {
-		r->movie_facebook_likes = 0;
-	}
-	return r;
-}
-
 int main(int argc, char** argv) {
 	// check if there's enough args
 	if (argc < 7) {
@@ -490,7 +377,12 @@ int main(int argc, char** argv) {
 	write(sockfd, "return", strlen("return"));
 	read_sock(sockfd, buf, 20, 0, &socks);
 	int condition = 0;
-	records = alloc(sizeof(record*)*size);
+
+	// save the sorted csv
+	char* csv_out_path = alloc(PATH_MAX);
+	sprintf(csv_out_path, "%s/AllFiles-sorted-%s.csv", out_path, key);
+	FILE* csv_out = fopen(csv_out_path, "w");
+
 	while (condition == 0) {
 		int headerLength;
 		int messageLength;
@@ -502,27 +394,8 @@ int main(int argc, char** argv) {
 			messageLength = byteCount(sockfd,headerLength, &socks);
 			tempRec = alloc(sizeof(char)*messageLength);
 			getRecord(tempRec,sockfd,messageLength, &socks);
-
-		puts("old");
-			records[records_i] = parse(tempRec);
-		puts("new");
-			if (records_i >= size) {
-				size += 100;
-				records = realloc(records, size*sizeof(record*));
-				if (!records) {
-					puts("Couldn't reallocate memory.");
-					exit(-1);
-				}
-			}
+			fprintf(csv_out, tempRec);
 		}
-	}
-
-	// save the sorted csv
-	char* csv_out_path = alloc(PATH_MAX);
-	sprintf(csv_out_path, "%s/AllFiles-sorted-%s.csv", out_path, key);
-	FILE* csv_out = fopen(csv_out_path, "w");
-	for (size_t i = 0; i<records_i; ++i) {
-		print_record(csv_out, records[i]);
 	}
 	fclose(csv_out);
 	return 0;
