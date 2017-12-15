@@ -159,7 +159,7 @@ void* newfile(void* pathin) {
 	}
 	write(sockfd, "0@", strlen("0@"));
 	read_sock(sockfd, buf, 20, 0, &socks);
-	close(sockfd);
+	//close(sockfd);
 	return 0;
 }
 
