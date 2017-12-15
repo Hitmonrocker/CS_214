@@ -394,9 +394,9 @@ int main(int argc, char** argv) {
 			messageLength = byteCount(sockfd,headerLength, &socks);
 			tempRec = alloc(sizeof(char)*messageLength);
 			getRecord(tempRec,sockfd,messageLength, &socks);
-			puts(tempRec);
 			puts("");
 			fprintf(csv_out, "%s\n", tempRec);
+			printf(csv_out, "%s\n", tempRec);
 		}
 	}
 	fclose(csv_out);
