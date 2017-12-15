@@ -376,31 +376,28 @@ int main(int argc, char** argv) {
 
 	write(sockfd, "return", strlen("return"));
 	read_sock(sockfd, buf, 20, 0, &socks);
-	int condition = 0;
 
 	// save the sorted csv
 	char* csv_out_path = alloc(PATH_MAX);
 	sprintf(csv_out_path, "%s/AllFiles-sorted-%s.csv", out_path, key);
 	FILE* csv_out = fopen(csv_out_path, "w");
 
-	while (condition == 0) {
+	while (1) {
 		int headerLength;
 		int messageLength;
 		char* tempRec;
 		headerLength = headerDigitCount(sockfd, &socks);
 		if (headerLength<=0) {
-			condition = -1;
+			fclose(csv_out);
+			return 0;
 		} else {
 			messageLength = byteCount(sockfd,headerLength, &socks);
 			tempRec = alloc(sizeof(char)*messageLength);
 			getRecord(tempRec,sockfd,messageLength, &socks);
-			puts("");
 			fprintf(csv_out, "%s\n", tempRec);
-			printf(csv_out, "%s\n", tempRec);
+			printf("%s\n\n", tempRec);
 		}
 	}
-	fclose(csv_out);
-	return 0;
 }
 
 // get the next comma delimited string in the line
