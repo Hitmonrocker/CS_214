@@ -126,13 +126,13 @@ void* newfile(void* pathin) {
 
 	// open a socket and connect
 	int sockfd = socket(AF_INET, SOCK_STREAM, 0);
-	if(sockfd < 0) {
+	if (sockfd < 0) {
 		puts("Couldn't open a socket");
 		exit(-1);
 	}
-	if (connect(sockfd,(struct sockaddr *) &server_addr,sizeof(server_addr)) < 0){
-    	puts("Couldn't connect to server");
-    	exit(-1);
+	if (connect(sockfd,(struct sockaddr *) &server_addr,sizeof(server_addr)) < 0) {
+		puts("Couldn't connect to server");
+		exit(-1);
 	}
 	char buf[20];
 	fd_set socks;
@@ -163,7 +163,7 @@ void* newfile(void* pathin) {
 		write(sockfd, sendbuf, strlen(sendbuf));
 		read_sock(sockfd, buf, 20, 0, &socks);
 		//puts(buf);
-	
+
 		// do some housekeeping to prepare for the next line
 		if (current >= size) {
 			size += 100;
@@ -239,10 +239,40 @@ void* newdir(void* pathin) {
 		tpool_i = (tpool_i+1)%TPOOL_SIZE;
 		pthread_mutex_unlock(&tpool_mut);
 	}
-
 	closedir(cur_dir);
 	free(cur_path);
 	return 0;
+}
+
+void getRecord(char* record,int c_s,int length, fd_set *socks) {
+	record[read_sock(c_s, record,length, MSG_WAITALL, socks)] = 0;
+}
+
+int byteCount(int c_s,int digitCount, fd_set *socks) {
+	char* buffer = (char*) malloc(sizeof(char)*digitCount);
+	read_sock(c_s, buffer, digitCount, MSG_WAITALL, socks);
+	printf("bc %d %s\n", atoi(buffer), buffer);
+	return atoi(buffer);
+}
+
+int headerDigitCount(int c_s, fd_set *socks) {
+	// read header digit count
+	char* buffer = (char*) malloc(sizeof(char)*9);
+	int exit_condition = 1;
+	int buffer_tracker = 0;
+	int readvalue;
+	while (exit_condition) {
+		readvalue = read_sock(c_s,buffer+buffer_tracker,1,0, socks);
+		if (readvalue == 1) {
+			buffer_tracker++;
+		}
+		if (buffer[buffer_tracker-1] =='@') {
+			exit_condition = 0;
+			buffer[buffer_tracker] = '\0';
+		}
+	}
+	printf("hdc %d %s\n", atoi(buffer), buffer);
+	return atoi(buffer);
 }
 
 int main(int argc, char** argv) {
@@ -324,11 +354,11 @@ int main(int argc, char** argv) {
 		printf("%s is not a valid column name\n", key);
 		return -1;
 	}
-	if(port == 0) {
+	if (port == 0) {
 		print_usage();
 		return -1;
 	}
-	if(server == NULL) {
+	if (server == NULL) {
 		print_usage();
 		return -1;
 	}
@@ -358,13 +388,13 @@ int main(int argc, char** argv) {
 	//retrieve sorted files
 	// open a socket and connect
 	int sockfd = socket(AF_INET, SOCK_STREAM, 0);
-	if(sockfd < 0) {
+	if (sockfd < 0) {
 		puts("Couldn't open a socket");
 		exit(-1);
 	}
-	if (connect(sockfd,(struct sockaddr *) &server_addr,sizeof(server_addr)) < 0){
-    	puts("Couldn't connect to server");
-    	exit(-1);
+	if (connect(sockfd,(struct sockaddr *) &server_addr,sizeof(server_addr)) < 0) {
+		puts("Couldn't connect to server");
+		exit(-1);
 	}
 	char buf[20];
 	fd_set socks;
@@ -372,15 +402,34 @@ int main(int argc, char** argv) {
 	FD_SET(sockfd,&socks);
 	write(sockfd, "sort", strlen("sort"));
 	read_sock(sockfd, buf, 20, 0, &socks);
-	for(int i = 0; i < 28; ++i){
-		if(!strcmp(key, columns[i])) {
+	for (int i = 0; i < 28; ++i) {
+		if (!strcmp(key, columns[i])) {
 			sprintf(buf,"%d",i);
 			write(sockfd, buf, strlen(buf));
 			read_sock(sockfd, buf, 20, 0, &socks);
 		}
 	}
+
 	write(sockfd, "return", strlen("return"));
 	read_sock(sockfd, buf, 20, 0, &socks);
+	int condition = 0;
+	while (condition == 0) {
+		puts("new rec");
+		int headerLength;
+		int messageLength;
+		char* tempRec;
+		headerLength = headerDigitCount(sockfd, &socks);
+		if (headerLength<=0) {
+			condition = -1;
+		} else {
+			messageLength = byteCount(sockfd,headerLength, &socks);
+			tempRec = malloc(sizeof(char)*messageLength);
+			getRecord(tempRec,sockfd,messageLength, &socks);
+			puts(tempRec);
+			puts("");
+			// parse the line
+		}
+	}
 
 	// save the sorted csv
 	char* csv_out_path = alloc(PATH_MAX);
@@ -487,68 +536,4 @@ void print_record(FILE* f, record *r) {
 	        r->imdb_score,
 	        r->aspect_ratio,
 	        r->movie_facebook_likes);
-}
-
-// allow comparisons on an arbitrary field
-float cmp(record* r1, record* r2, char* key) {
-	if (strcmp(key, "color") == 0) {
-		return strcmp(r1->color, r2->color);
-	} else if (strcmp(key, "director_name") == 0) {
-		return strcmp(r1->director_name, r2->director_name);
-	} else if (strcmp(key, "num_critic_for_reviews") == 0) {
-		return r1->num_critic_for_reviews - r2->num_critic_for_reviews;
-	} else if (strcmp(key, "duration") == 0) {
-		return r1->duration - r2->duration;
-	} else if (strcmp(key, "director_facebook_likes") == 0) {
-		return r1->director_facebook_likes - r2->director_facebook_likes;
-	} else if (strcmp(key, "actor_3_facebook_likes") == 0) {
-		return r1->actor_3_facebook_likes - r2->actor_3_facebook_likes;
-	} else if (strcmp(key, "actor_2_name") == 0) {
-		return strcmp(r1->actor_2_name, r2->actor_2_name);
-	} else if (strcmp(key, "actor_1_facebook_likes") == 0) {
-		return r1->actor_1_facebook_likes - r2->actor_1_facebook_likes;
-	} else if (strcmp(key, "gross") == 0) {
-		return r1->gross - r2->gross;
-	} else if (strcmp(key, "genres") == 0) {
-		return strcmp(r1->genres, r2->genres);
-	} else if (strcmp(key, "actor_1_name") == 0) {
-		return strcmp(r1->actor_1_name, r2->actor_1_name);
-	} else if (strcmp(key, "movie_title") == 0) {
-		return strcmp(r1->movie_title, r2->movie_title);
-	} else if (strcmp(key, "num_voted_users") == 0) {
-		return r1->num_voted_users - r2->num_voted_users;
-	} else if (strcmp(key, "cast_total_facebook_likes") == 0) {
-		return r1->cast_total_facebook_likes - r2->cast_total_facebook_likes;
-	} else if (strcmp(key, "actor_3_name") == 0) {
-		return strcmp(r1->actor_3_name, r2->actor_3_name);
-	} else if (strcmp(key, "facenumber_in_poster") == 0) {
-		return r1->facenumber_in_poster - r2->facenumber_in_poster;
-	} else if (strcmp(key, "plot_keywords") == 0) {
-		return strcmp(r1->plot_keywords, r2->plot_keywords);
-	} else if (strcmp(key, "movie_imdb_link") == 0) {
-		return strcmp(r1->movie_imdb_link, r2->movie_imdb_link);
-	} else if (strcmp(key, "num_user_for_reviews") == 0) {
-		return r1->num_user_for_reviews - r2->num_user_for_reviews;
-	} else if (strcmp(key, "language") == 0) {
-		return strcmp(r1->language, r2->language);
-	} else if (strcmp(key, "country") == 0) {
-		return strcmp(r1->country, r2->country);
-	} else if (strcmp(key, "content_rating") == 0) {
-		return strcmp(r1->content_rating, r2->content_rating);
-	} else if (strcmp(key, "budget") == 0) {
-		return r1->budget - r2->budget;
-	} else if (strcmp(key, "title_year") == 0) {
-		return r1->title_year - r2->title_year;
-	} else if (strcmp(key, "actor_2_facebook_likes") == 0) {
-		return r1->actor_2_facebook_likes - r2->actor_2_facebook_likes;
-	} else if (strcmp(key, "imdb_score") == 0) {
-		return r1->imdb_score - r2->imdb_score;
-	} else if (strcmp(key, "aspect_ratio") == 0) {
-		return r1->aspect_ratio - r2->aspect_ratio;
-	} else if (strcmp(key, "movie_facebook_likes") == 0) {
-		return r1->movie_facebook_likes - r2->movie_facebook_likes;
-	} else {
-		puts("This should never happen");
-		exit(-1);
-	}
 }

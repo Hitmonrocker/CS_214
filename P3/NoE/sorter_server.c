@@ -208,27 +208,24 @@ void *client_run (void *client) {
 				}
 				char* message;
 				size_t s = 999;
-				reader = fopen("test.csv","r");
-				if (reader) {
-					int size;
+				int size;
+				size = getline(&buffer,&s,reader) - 3;
+				char buff[9];
+				while (size > 0) {
 					size = getline(&buffer,&s,reader) - 3;
-					char buff[9];
-					while (size > 0) {
-						size = getline(&buffer,&s,reader) - 3;
-						int digit = getHeaderCount(size);
-						if (digit > 0) {
-							message = (char*)malloc(sizeof(char)*(size+digit-2));
-							sprintf(buff,"%d",digit);
-							strcpy(message,buff);
-							strcat(message,"@");
-							sprintf(buff,"%d",size-3);
-							strcat(message,buff);
-							strcat(message,buffer);
-						} else {
-							message ="0@";
-						}
-						send(client_socket,message,strlen(message),0);
+					int digit = getHeaderCount(size);
+					if (digit > 0) {
+						message = (char*)malloc(sizeof(char)*(size+digit-2));
+						sprintf(buff,"%d",digit);
+						strcpy(message,buff);
+						strcat(message,"@");
+						sprintf(buff,"%d",size-3);
+						strcat(message,buff);
+						strcat(message,buffer);
+					} else {
+						message ="0@";
 					}
+					send(client_socket,message,strlen(message),0);
 				}
 				fclose(reader);
 			} else {
@@ -242,6 +239,7 @@ void *client_run (void *client) {
 	}
 	return 0;
 }
+
 void getRecord(char* record,int c_s,int length, fd_set socks) {
 	select(c_s+1, &socks, NULL, NULL, NULL);
 	record[recv(c_s, record,length, MSG_WAITALL)] = 0;
@@ -273,6 +271,7 @@ int headerDigitCount(int c_s, fd_set socks) {
 	}
 	return atoi(buffer);
 }
+
 int parse_line(char *line) {
 
 	//char word;	// just a variable
